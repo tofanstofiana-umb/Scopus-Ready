@@ -10,17 +10,21 @@ interface AppShellProps {
   title?: string;
   subtitle?: string;
   actions?: ReactNode;
+  userName?: string;
+  userInstitution?: string | null;
+  progress?: number;
 }
 
-export function AppShell({ children, role = "peserta", title, subtitle, actions }: AppShellProps) {
+export function AppShell({ children, role = "peserta", title, subtitle, actions, userName, userInstitution, progress }: AppShellProps) {
   const roleLabel = role === "trainer" ? "Trainer" : role === "admin" ? "Admin" : "Peserta";
-  const roleInitial = role === "trainer" ? "S" : role === "admin" ? "A" : "T";
+  const displayName = userName || (role === "trainer" ? "Trainer" : role === "admin" ? "Administrator" : "Peserta");
+  const roleInitial = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="app-canvas min-h-screen flex">
       {/* Sidebar (desktop) */}
       <div className="hidden lg:block flex-shrink-0">
-        <Sidebar role={role} />
+        <Sidebar role={role} userName={displayName} userInstitution={userInstitution || roleLabel} progress={progress} />
       </div>
 
       {/* Main content */}
@@ -64,7 +68,7 @@ export function AppShell({ children, role = "peserta", title, subtitle, actions 
               <span className="topbar-avatar">{roleInitial}</span>
               <span className="hidden text-left xl:block">
                 <span className="block text-[11px] font-bold leading-none text-[#082B5C]">
-                  {role === "trainer" ? "Siti Rahayu" : role === "admin" ? "Administrator" : "Tofan"}
+                  {displayName}
                 </span>
                 <span className="mt-1 block text-[9px] leading-none text-slate-400">{roleLabel}</span>
               </span>

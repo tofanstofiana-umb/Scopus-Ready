@@ -62,6 +62,10 @@ test("trainer cannot open participant or admin routes", async ({ page }) => {
 
   await page.goto("/admin");
   await expect(page).toHaveURL(/\/unauthorized$/);
+
+  await page.goto("/score");
+  await expect(page).toHaveURL(/\/score$/);
+  await expect(page.getByRole("heading", { name: "SCOPUS READY Score" })).toBeVisible();
 });
 
 test("participant creates and reopens a persistent manuscript project", async ({ page }, testInfo) => {
@@ -216,11 +220,14 @@ test("trainer reviews Problem Builder and participant addresses persistent feedb
     const projectCard = page.locator(".section-card").filter({ hasText: title });
     await projectCard.getByRole("link", { name: "Buka Problem Builder" }).click();
     await expect(page.getByText(initialTopic)).toBeVisible();
+    await expect(page.getByText("Progres 4.2%", { exact: true })).toBeVisible();
+    await expect(page.getByText("Score Belum dinilai", { exact: true })).toBeVisible();
     await page.getByLabel("Komentar").fill(comment);
     await page.getByLabel("Prioritas").selectOption("high");
     await page.getByRole("button", { name: "Kirim Feedback" }).click();
     await expect(page.getByText("Feedback berhasil disimpan.")).toBeVisible();
     await expect(page.getByText(comment)).toBeVisible();
+    await expect(page.getByText("Progres 6.3%", { exact: true })).toBeVisible();
 
     await expect.poll(async () => {
       const { data } = await service
@@ -236,6 +243,10 @@ test("trainer reviews Problem Builder and participant addresses persistent feedb
     await page.goto(`/projects/${createdProjectId}/workbook/problem`);
     await expect(page.getByText("Status Problem Builder: Perlu Revisi")).toBeVisible();
     await expect(page.getByText(comment)).toBeVisible();
+    await page.goto(`/score?projectId=${createdProjectId}`);
+    await expect(page.getByText("Score belum dapat diterbitkan")).toBeVisible();
+    await expect(page.getByText("Progres 6.3% mengukur penyelesaian modul.")).toBeVisible();
+    await page.goto(`/projects/${createdProjectId}/workbook/problem`);
     await page.getByLabel("Apa topik penelitian Anda?").fill(revisedTopic);
     await expect(page.getByText("Tersimpan otomatis di database")).toBeVisible();
     await page.getByRole("button", { name: "Tandai Sudah Diperbaiki" }).click();
@@ -255,6 +266,7 @@ test("trainer reviews Problem Builder and participant addresses persistent feedb
     await page.goto(`/trainer/projects/${createdProjectId}/problem`);
     await page.getByRole("button", { name: "Tandai Selesai" }).click();
     await expect(page.getByText("resolved", { exact: true })).toBeVisible();
+    await expect(page.getByText("Progres 4.2%", { exact: true })).toBeVisible();
     await expect.poll(async () => {
       const { data } = await service
         .from("feedback")

@@ -43,9 +43,10 @@ interface SidebarProps {
   role?: "peserta" | "trainer" | "admin";
   userName?: string;
   userInstitution?: string;
+  progress?: number;
 }
 
-export function Sidebar({ role = "peserta", userName = "Tofan Stofiana", userInstitution = "Universitas Indonesia" }: SidebarProps) {
+export function Sidebar({ role = "peserta", userName = "Peserta", userInstitution = "SCOPUS READY", progress }: SidebarProps) {
   const pathname = usePathname();
   const navItems = role === "trainer" ? trainerNav : role === "admin" ? adminNav : pesertaNav;
 
@@ -91,14 +92,14 @@ export function Sidebar({ role = "peserta", userName = "Tofan Stofiana", userIns
         })}
       </nav>
 
-      {role === "peserta" && (
+      {role === "peserta" && progress !== undefined && (
         <div className="mx-3 mb-3 rounded-xl border border-white/10 bg-white/[0.05] p-3">
           <div className="mb-2 flex items-center justify-between text-[10px] font-semibold text-white/60">
             <span>Progres workbook</span>
-            <span className="text-[#F4BF4F]">72%</span>
+            <span className="text-[#F4BF4F]">{progress}%</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-            <div className="h-full w-[72%] rounded-full bg-gradient-to-r from-[#F4BF4F] to-[#F59E0B]" />
+            <div className="h-full rounded-full bg-gradient-to-r from-[#F4BF4F] to-[#F59E0B]" style={{ width: `${progress}%` }} />
           </div>
           <div className="mt-2 flex items-center gap-1.5 text-[9px] text-emerald-300">
             <ShieldCheck size={11} /> Data tersimpan otomatis

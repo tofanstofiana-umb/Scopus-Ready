@@ -9,7 +9,8 @@ export function roleHomeRoute(role: UserRole): "/dashboard" | "/trainer" | "/adm
 export function canAccessRoleRoute(role: UserRole, pathname: string): boolean {
   if (pathname.startsWith("/admin")) return role === "admin";
   if (pathname.startsWith("/trainer")) return role === "trainer" || role === "admin";
-  if (["/dashboard", "/projects", "/workbook", "/score", "/review", "/manuscript", "/journals", "/action-plan", "/library"].some((prefix) => pathname.startsWith(prefix))) {
+  if (pathname.startsWith("/score")) return true;
+  if (["/dashboard", "/projects", "/workbook", "/review", "/manuscript", "/journals", "/action-plan", "/library"].some((prefix) => pathname.startsWith(prefix))) {
     return role === "participant" || role === "admin";
   }
   return true;

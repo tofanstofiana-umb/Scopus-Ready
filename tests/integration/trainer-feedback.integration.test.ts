@@ -113,7 +113,26 @@ describe.skipIf(!configured)("Trainer feedback persistence and RLS", () => {
 
     const primary = await createProjectWithAnswer("primary");
     const secondary = await createProjectWithAnswer("secondary");
-    const { client: assignedTrainer } = await signIn(trainerEmail!, trainerPassword!);
+    const { client: assignedTrainer, user: trainerUser } = await signIn(trainerEmail!, trainerPassword!);
+
+    const { error: validAssessmentError } = await assignedTrainer.from("assessments").insert({
+      project_id: primary.project.id,
+      worksheet_answer_id: primary.answer.id,
+      assessor_id: trainerUser.id,
+      dimension: "problem",
+      score: 7,
+      max_score: 8,
+    });
+    expect(validAssessmentError).toBeNull();
+    const { error: mismatchedAssessmentError } = await assignedTrainer.from("assessments").insert({
+      project_id: primary.project.id,
+      worksheet_answer_id: secondary.answer.id,
+      assessor_id: trainerUser.id,
+      dimension: "problem",
+      score: 7,
+      max_score: 8,
+    });
+    expect(mismatchedAssessmentError).not.toBeNull();
 
     const { error: directInsertError } = await assignedTrainer.from("feedback").insert({
       project_id: primary.project.id,
@@ -186,5 +205,13 @@ describe.skipIf(!configured)("Trainer feedback persistence and RLS", () => {
     expect(resolvedReadError).toBeNull();
     expect(resolvedFeedback?.status).toBe("resolved");
     expect(resolvedFeedback?.resolved_at).toBeTruthy();
+
+    const { data: completedAnswer, error: completedAnswerError } = await owner
+      .from("worksheet_answers")
+      .select("status")
+      .eq("id", primary.answer.id)
+      .single();
+    expect(completedAnswerError).toBeNull();
+    expect(completedAnswer?.status).toBe("completed");
   });
 });

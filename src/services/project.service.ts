@@ -17,7 +17,7 @@ export class ProjectClassAccessError extends Error {
 }
 
 export async function getUserProjects(): Promise<Project[]> {
-  const { profile } = await requireIdentity(["participant", "admin"]);
+  const { profile } = await requireIdentity(["participant", "trainer", "admin"]);
   const supabase = await createSupabaseServerClient();
   let query = supabase
     .from("projects")

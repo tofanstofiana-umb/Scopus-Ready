@@ -16,6 +16,7 @@ describe("role permissions", () => {
 
   it("keeps trainer and admin route scopes separate", () => {
     expect(canAccessRoleRoute("trainer", "/trainer")).toBe(true);
+    expect(canAccessRoleRoute("trainer", "/score")).toBe(true);
     expect(canAccessRoleRoute("trainer", "/dashboard")).toBe(false);
     expect(canAccessRoleRoute("trainer", "/admin")).toBe(false);
     expect(canAccessRoleRoute("admin", "/trainer")).toBe(true);
