@@ -169,3 +169,101 @@ test("participant autosaves and restores five Problem Builder answers", async ({
     }
   }
 });
+
+test("trainer reviews Problem Builder and participant addresses persistent feedback", async ({ page }, testInfo) => {
+  const participant = accounts.participant;
+  const trainer = accounts.trainer;
+  const serviceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  test.skip(
+    !participant.email || !participant.password || !trainer.email || !trainer.password || !serviceUrl || !serviceRoleKey,
+    "Set participant, trainer, and local Supabase service credentials first",
+  );
+
+  const service = createClient(serviceUrl!, serviceRoleKey!, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  let createdProjectId: string | undefined;
+  const title = `Trainer Feedback E2E ${testInfo.project.name} ${Date.now()}`;
+  const initialTopic = "Pendampingan pembelajaran digital";
+  const revisedTopic = "Pendampingan adaptif pada pembelajaran digital";
+  const comment = `Perjelas konteks masalah dan bukti empiris ${testInfo.project.name}.`;
+
+  try {
+    await login(page, participant);
+    await page.goto("/projects/new");
+    await page.getByLabel("Judul manuskrip").fill(title);
+    await page.getByLabel("Bidang penelitian").fill("Pendidikan Digital");
+    await page.getByRole("button", { name: /^Buat Proyek$/ }).click();
+    await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}$/);
+    createdProjectId = page.url().split("/").at(-1);
+    await page.getByRole("link", { name: "Buka Problem Builder" }).click();
+    await page.getByLabel("Apa topik penelitian Anda?").fill(initialTopic);
+    await expect(page.getByText("Tersimpan otomatis di database")).toBeVisible();
+    await expect.poll(async () => {
+      const { data } = await service
+        .from("worksheet_answers")
+        .select("content")
+        .eq("project_id", createdProjectId!)
+        .maybeSingle();
+      return data?.content?.topic;
+    }).toBe(initialTopic);
+
+    await page.context().clearCookies();
+    await login(page, trainer);
+    await page.getByRole("link", { name: "Buka Kelas" }).first().click();
+    await page.getByRole("link", { name: "Detail Peserta" }).click();
+    const projectCard = page.locator(".section-card").filter({ hasText: title });
+    await projectCard.getByRole("link", { name: "Buka Problem Builder" }).click();
+    await expect(page.getByText(initialTopic)).toBeVisible();
+    await page.getByLabel("Komentar").fill(comment);
+    await page.getByLabel("Prioritas").selectOption("high");
+    await page.getByRole("button", { name: "Kirim Feedback" }).click();
+    await expect(page.getByText("Feedback berhasil disimpan.")).toBeVisible();
+    await expect(page.getByText(comment)).toBeVisible();
+
+    await expect.poll(async () => {
+      const { data } = await service
+        .from("worksheet_answers")
+        .select("status")
+        .eq("project_id", createdProjectId!)
+        .single();
+      return data?.status;
+    }).toBe("needs_revision");
+
+    await page.context().clearCookies();
+    await login(page, participant);
+    await page.goto(`/projects/${createdProjectId}/workbook/problem`);
+    await expect(page.getByText("Status Problem Builder: Perlu Revisi")).toBeVisible();
+    await expect(page.getByText(comment)).toBeVisible();
+    await page.getByLabel("Apa topik penelitian Anda?").fill(revisedTopic);
+    await expect(page.getByText("Tersimpan otomatis di database")).toBeVisible();
+    await page.getByRole("button", { name: "Tandai Sudah Diperbaiki" }).click();
+    await expect(page.getByText("Menunggu Trainer")).toBeVisible();
+
+    await expect.poll(async () => {
+      const { data } = await service
+        .from("feedback")
+        .select("status")
+        .eq("project_id", createdProjectId!)
+        .single();
+      return data?.status;
+    }).toBe("addressed");
+
+    await page.context().clearCookies();
+    await login(page, trainer);
+    await page.goto(`/trainer/projects/${createdProjectId}/problem`);
+    await page.getByRole("button", { name: "Tandai Selesai" }).click();
+    await expect(page.getByText("resolved", { exact: true })).toBeVisible();
+    await expect.poll(async () => {
+      const { data } = await service
+        .from("feedback")
+        .select("status")
+        .eq("project_id", createdProjectId!)
+        .single();
+      return data?.status;
+    }).toBe("resolved");
+  } finally {
+    if (createdProjectId) await service.from("projects").delete().eq("id", createdProjectId);
+  }
+});

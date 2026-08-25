@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
+import { ParticipantFeedbackList } from "@/components/feedback/ParticipantFeedbackList";
 import { ProblemBuilderForm } from "@/components/workbook/ProblemBuilderForm";
+import { getWorksheetFeedback } from "@/services/feedback.service";
 import { getProject } from "@/services/project.service";
 import { getProblemWorksheet } from "@/services/worksheet.service";
 import type { ProblemBuilderContent } from "@/types/worksheet";
@@ -12,10 +14,15 @@ export default async function ProblemBuilderPage({ params }: { params: Promise<{
   const { projectId } = await params;
   const [project, answer] = await Promise.all([getProject(projectId), getProblemWorksheet(projectId)]);
   if (!project) notFound();
+  const feedback = answer ? await getWorksheetFeedback(answer.id) : [];
   return (
     <AppShell title="Problem Builder" subtitle={project.title}>
       <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <ProblemBuilderForm projectId={projectId} initialContent={answer?.content || emptyContent} initialUpdatedAt={answer?.updated_at || null} />
+        <div className="space-y-6">
+          {answer?.status === "needs_revision" && <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-800">Status Problem Builder: Perlu Revisi</div>}
+          <ProblemBuilderForm projectId={projectId} initialContent={answer?.content || emptyContent} initialUpdatedAt={answer?.updated_at || null} />
+          <ParticipantFeedbackList feedback={feedback} projectId={projectId} />
+        </div>
         <aside className="space-y-4">
           <div className="section-card p-5">
             <h2 className="font-extrabold text-[#082B5C]">Cara mengisi</h2>

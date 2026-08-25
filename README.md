@@ -8,6 +8,8 @@ Checkpoint Sprint 3 mengaktifkan lima jawaban Problem Builder dengan penyimpanan
 
 Checkpoint Sprint 4 mengaktifkan autosave nyata pada Problem Builder dengan debounce 1,2 detik, antrean penyimpanan tunggal, status menyimpan/berhasil/gagal, retry, dan perlindungan konflik antar-sesi. Tombol simpan manual tetap tersedia sebagai cadangan.
 
+Checkpoint Sprint 5 mengaktifkan dashboard kelas trainer berbasis data nyata, pembacaan Problem Builder peserta, feedback persisten, status Perlu Revisi, tindak lanjut peserta, dan penyelesaian feedback oleh trainer.
+
 ## Setup Supabase Local
 
 Prasyarat: Node.js 22, Docker Desktop aktif, dan ruang disk kosong yang cukup untuk image Supabase.
@@ -86,6 +88,17 @@ Trainer hanya dapat membaca proyek yang dihubungkan ke kelasnya. Pada checkpoint
 
 Jika koneksi gagal, gunakan **Coba Lagi**. Jika data telah diubah dari sesi lain, gunakan **Muat Ulang** agar versi terbaru tidak tertimpa.
 
+## Mencoba Sprint 5
+
+1. Buat proyek peserta yang terhubung ke kelas dan isi Problem Builder.
+2. Login sebagai trainer, buka **Dashboard Trainer → Buka Kelas → Detail Peserta**.
+3. Buka Problem Builder peserta, tulis komentar minimal 10 karakter, pilih prioritas, lalu klik **Kirim Feedback**.
+4. Login kembali sebagai peserta. Problem Builder menampilkan status **Perlu Revisi** dan komentar trainer.
+5. Perbaiki jawaban, tunggu autosave selesai, lalu pilih **Tandai Sudah Diperbaiki**.
+6. Login sebagai trainer dan pilih **Tandai Selesai** setelah memeriksa revisi peserta.
+
+Trainer hanya dapat memberikan feedback untuk pasangan proyek dan worksheet yang benar-benar berada dalam kelasnya.
+
 ## Supabase hosted
 
 Untuk lingkungan hosted, buat proyek Supabase, isi URL dan anon key proyek, lalu jalankan migration melalui workflow CLI yang terhubung. Jangan menjalankan `supabase:seed-auth` terhadap proyek remote dan jangan memasukkan service-role key ke browser.
@@ -124,6 +137,7 @@ Jalankan `npm run test:e2e`. Perintah ini melakukan build produksi, menyalakan s
 - Trainer hanya dapat membaca peserta dan proyek dalam kelas yang ditugaskan.
 - Pemilihan kelas proyek diperiksa ulang pada Data Access Layer dan PostgreSQL RLS.
 - RPC Problem Builder hanya menerima lima field yang diizinkan, membatasi panjang jawaban, memeriksa kepemilikan proyek, dan menolak penyimpanan versi lama.
+- Penulisan feedback hanya melalui RPC tervalidasi yang memeriksa role trainer, kelas, proyek, dan worksheet sebagai satu hubungan.
 - `SUPABASE_SERVICE_ROLE_KEY` tidak digunakan oleh runtime client.
 - Score penuh tidak ditampilkan sampai rubrik lengkap tersedia.
 
