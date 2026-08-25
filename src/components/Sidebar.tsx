@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { logoutAction } from "@/app/actions/auth";
 import {
   LayoutDashboard, BookOpen, FileText, Target, MessageSquare,
   Star, Calendar, Library, User, ChevronRight, LogOut,
@@ -118,11 +119,11 @@ export function Sidebar({ role = "peserta", userName = "Tofan Stofiana", userIns
             <div className="text-sm font-semibold text-white truncate">{userName}</div>
             <div className="text-xs truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{userInstitution}</div>
           </div>
-          <div className="opacity-0 transition-opacity group-hover:opacity-100">
-            <Link href="/login" aria-label="Keluar dari preview aplikasi">
-              <LogOut size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
-            </Link>
-          </div>
+          <form action={logoutAction} className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+            <button type="submit" aria-label="Keluar dari aplikasi" className="grid h-8 w-8 place-items-center rounded-lg hover:bg-white/10">
+              <LogOut size={16} style={{ color: "rgba(255,255,255,0.55)" }} />
+            </button>
+          </form>
         </div>
       </div>
     </aside>

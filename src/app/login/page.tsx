@@ -1,8 +1,7 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   BarChart3,
@@ -14,6 +13,8 @@ import {
   Target,
 } from "lucide-react";
 import { BrandMark } from "@/components/BrandMark";
+import { loginAction } from "@/app/actions/auth";
+import type { ActionResult } from "@/types/auth";
 
 const benefits = [
   {
@@ -34,26 +35,15 @@ const benefits = [
 ];
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-  const [pending, setPending] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setErrorMessage(null);
-
-    if (!email.trim() || !password.trim()) {
-      setErrorMessage("Masukkan email dan password untuk melanjutkan preview.");
-      return;
-    }
-
-    setPending(true);
-    window.setTimeout(() => router.push("/dashboard"), 450);
-  }
+  const [state, formAction, pending] = useActionState(loginAction, {
+    ok: false,
+  } as ActionResult);
+  const errorMessage =
+    state.message ?? Object.values(state.fieldErrors ?? {}).flat()[0] ?? null;
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#F5F7FA] text-[#172033]">
@@ -155,7 +145,7 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+              <form action={formAction} className="space-y-5" noValidate>
                 <div>
                   <label
                     htmlFor="email"
@@ -169,6 +159,7 @@ export default function LoginPage() {
                     type="email"
                     autoComplete="email"
                     inputMode="email"
+                    aria-label="Email Akun"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     required
@@ -229,6 +220,8 @@ export default function LoginPage() {
                 <label className="flex w-fit cursor-pointer items-center gap-2.5 text-sm text-[#64748B]">
                   <input
                     type="checkbox"
+                    name="rememberMe"
+                    value="true"
                     checked={rememberMe}
                     onChange={(event) => setRememberMe(event.target.checked)}
                     className="h-4 w-4 rounded border-[#CBD5E1] accent-[#0B4EA2]"

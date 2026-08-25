@@ -1,0 +1,3 @@
+-- Seed data that does not depend on Auth belongs here.
+-- Login-capable development accounts are created after the stack starts with:
+-- npm run supabase:seed-auth

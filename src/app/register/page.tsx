@@ -1,25 +1,18 @@
 "use client";
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { BookOpen, ArrowRight, User, Mail, Lock, KeyRound } from "lucide-react";
+import { registerAction } from "@/app/actions/auth";
+import type { ActionResult } from "@/types/auth";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     classCode: "",
   });
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    router.push("/onboarding");
-  };
+  const [state, formAction, pending] = useActionState(registerAction, { ok: false } as ActionResult);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "linear-gradient(135deg, #082B5C 0%, #0B4EA2 100%)" }}>
@@ -38,12 +31,13 @@ export default function RegisterPage() {
         <h2 className="text-2xl font-bold text-gray-900 mb-1">Daftar Akun Baru</h2>
         <p className="text-gray-500 text-sm mb-6">Mulai langkah nyata mempersiapkan manuskrip Anda</p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form action={formAction} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-1">Nama Lengkap</label>
             <div className="relative">
               <input
                 type="text"
+                name="fullName"
                 required
                 className="input-field pl-9 text-sm"
                 placeholder="Dr. Tofan Stofiana, M.Pd."
@@ -59,6 +53,7 @@ export default function RegisterPage() {
             <div className="relative">
               <input
                 type="email"
+                name="email"
                 required
                 className="input-field pl-9 text-sm"
                 placeholder="nama@institusi.ac.id"
@@ -74,6 +69,7 @@ export default function RegisterPage() {
             <div className="relative">
               <input
                 type="password"
+                name="password"
                 required
                 className="input-field pl-9 text-sm"
                 placeholder="Minimal 8 karakter"
@@ -91,6 +87,7 @@ export default function RegisterPage() {
             <div className="relative">
               <input
                 type="text"
+                name="classCode"
                 className="input-field pl-9 font-mono text-sm tracking-wider uppercase"
                 placeholder="SR-2026-01"
                 value={formData.classCode}
@@ -102,11 +99,16 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={pending}
             className="w-full py-3 mt-2 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 btn-primary"
           >
-            {loading ? "Memproses..." : "Buat Akun & Lanjut Onboarding"} <ArrowRight size={16} />
+            {pending ? "Memproses..." : "Buat Akun"} <ArrowRight size={16} />
           </button>
+          {(state.message || state.fieldErrors) && (
+            <div aria-live="polite" className={`rounded-xl border p-3 text-xs ${state.ok ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-red-200 bg-red-50 text-red-700"}`}>
+              {state.message || Object.values(state.fieldErrors ?? {}).flat()[0]}
+            </div>
+          )}
         </form>
 
         <div className="mt-6 pt-6 border-t border-gray-100 text-center">
