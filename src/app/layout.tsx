@@ -1,20 +1,6 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
-
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-plus-jakarta",
-  display: "swap",
-  weight: ["300", "400", "500", "600", "700", "800"],
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-  weight: ["300", "400", "500", "600", "700"],
-});
 
 export const metadata: Metadata = {
   title: "SCOPUS READY™ Digital Workbook",
@@ -34,11 +20,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${plusJakarta.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="id" suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
+        {process.env.NODE_ENV === "development" && (
+          <Script
+            id="browser-extension-hydration-guard"
+            src="/browser-extension-hydration-guard.js"
+            strategy="beforeInteractive"
+          />
+        )}
         {children}
       </body>
     </html>
   );
 }
-

@@ -3,13 +3,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, BookOpen, FileText, Target, MessageSquare,
-  Star, Calendar, Library, User, ChevronRight, LogOut, Bell,
-  BarChart3, Users
+  Star, Calendar, Library, User, ChevronRight, LogOut,
+  BarChart3, Users, Settings, ShieldCheck, FolderOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BrandMark } from "./BrandMark";
 
 const pesertaNav = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Beranda" },
+  { href: "/projects", icon: FolderOpen, label: "Proyek Manuskrip" },
   { href: "/workbook", icon: BookOpen, label: "Workbook" },
   { href: "/manuscript", icon: FileText, label: "Manuskrip Saya" },
   { href: "/journals", icon: Target, label: "Journal Target" },
@@ -22,10 +24,18 @@ const pesertaNav = [
 
 const trainerNav = [
   { href: "/trainer", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/trainer/participants", icon: Users, label: "Peserta" },
-  { href: "/trainer/feedback", icon: MessageSquare, label: "Feedback" },
-  { href: "/trainer/analytics", icon: BarChart3, label: "Analitik" },
+  { href: "/trainer#participants", icon: Users, label: "Peserta" },
+  { href: "/review", icon: MessageSquare, label: "Feedback" },
+  { href: "/score", icon: BarChart3, label: "Analitik" },
   { href: "/profile", icon: User, label: "Profil" },
+];
+
+const adminNav = [
+  { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/admin#classes", icon: BookOpen, label: "Kelas" },
+  { href: "/admin#users", icon: Users, label: "Pengguna" },
+  { href: "/admin#reports", icon: BarChart3, label: "Laporan" },
+  { href: "/admin#settings", icon: Settings, label: "Pengaturan" },
 ];
 
 interface SidebarProps {
@@ -36,30 +46,15 @@ interface SidebarProps {
 
 export function Sidebar({ role = "peserta", userName = "Tofan Stofiana", userInstitution = "Universitas Indonesia" }: SidebarProps) {
   const pathname = usePathname();
-  const navItems = role === "trainer" ? trainerNav : pesertaNav;
+  const navItems = role === "trainer" ? trainerNav : role === "admin" ? adminNav : pesertaNav;
 
   return (
     <aside
-      className="w-64 h-screen sticky top-0 flex flex-col z-40 flex-shrink-0"
-      style={{
-        background: "linear-gradient(180deg, #082B5C 0%, #051d3d 100%)",
-        borderRight: "1px solid rgba(255,255,255,0.06)",
-      }}
+      className="app-sidebar sticky top-0 z-40 flex h-screen w-[242px] flex-shrink-0 flex-col"
     >
       {/* Logo */}
-      <div className="p-6 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-        <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: "rgba(217,164,65,0.15)", border: "1px solid rgba(217,164,65,0.3)" }}
-          >
-            <BookOpen size={20} style={{ color: "#D9A441" }} />
-          </div>
-          <div>
-            <div className="font-black text-sm tracking-tight" style={{ color: "#D9A441" }}>SCOPUS READY™</div>
-            <div className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.4)" }}>Digital Workbook</div>
-          </div>
-        </div>
+      <div className="border-b border-white/[0.08] px-5 py-5">
+        <BrandMark inverse />
       </div>
 
       {/* Role badge */}
@@ -75,14 +70,16 @@ export function Sidebar({ role = "peserta", userName = "Tofan Stofiana", userIns
       )}
 
       {/* Nav */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {role === "peserta" && (
-          <div className="mb-2 px-4 text-xs font-bold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.25)" }}>
+          <div className="mb-2 px-3 text-[9px] font-bold uppercase tracking-[0.18em] text-white/30">
             Menu Utama
           </div>
         )}
         {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          const hasHash = item.href.includes("#");
+          const itemPath = item.href.split("#")[0];
+          const isActive = !hasHash && (pathname === itemPath || (itemPath !== "/" && pathname.startsWith(itemPath + "/")));
           return (
             <Link key={item.href} href={item.href} className={cn("nav-item", isActive && "active")}>
               <item.icon size={18} className="flex-shrink-0" />
@@ -93,9 +90,24 @@ export function Sidebar({ role = "peserta", userName = "Tofan Stofiana", userIns
         })}
       </nav>
 
+      {role === "peserta" && (
+        <div className="mx-3 mb-3 rounded-xl border border-white/10 bg-white/[0.05] p-3">
+          <div className="mb-2 flex items-center justify-between text-[10px] font-semibold text-white/60">
+            <span>Progres workbook</span>
+            <span className="text-[#F4BF4F]">72%</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+            <div className="h-full w-[72%] rounded-full bg-gradient-to-r from-[#F4BF4F] to-[#F59E0B]" />
+          </div>
+          <div className="mt-2 flex items-center gap-1.5 text-[9px] text-emerald-300">
+            <ShieldCheck size={11} /> Data tersimpan otomatis
+          </div>
+        </div>
+      )}
+
       {/* User section */}
-      <div className="p-4 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-        <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer group">
+      <div className="border-t border-white/[0.08] p-3">
+        <div className="group flex cursor-pointer items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-white/[0.06]">
           <div
             className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
             style={{ background: "linear-gradient(135deg, #D9A441, #c8932d)", color: "white" }}
@@ -106,9 +118,11 @@ export function Sidebar({ role = "peserta", userName = "Tofan Stofiana", userIns
             <div className="text-sm font-semibold text-white truncate">{userName}</div>
             <div className="text-xs truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{userInstitution}</div>
           </div>
-          <Link href="/login" className="opacity-0 group-hover:opacity-100 transition-opacity">
-            <LogOut size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
-          </Link>
+          <div className="opacity-0 transition-opacity group-hover:opacity-100">
+            <Link href="/login" aria-label="Keluar dari preview aplikasi">
+              <LogOut size={16} style={{ color: "rgba(255,255,255,0.4)" }} />
+            </Link>
+          </div>
         </div>
       </div>
     </aside>
@@ -124,8 +138,25 @@ const mobileNav = [
   { href: "/profile", icon: User, label: "Profil" },
 ];
 
-export function BottomNav() {
+export function BottomNav({ role = "peserta" }: { role?: "peserta" | "trainer" | "admin" }) {
   const pathname = usePathname();
+  const navItems = role === "trainer"
+    ? [
+        { href: "/trainer", icon: LayoutDashboard, label: "Dashboard" },
+        { href: "/trainer#participants", icon: Users, label: "Peserta" },
+        { href: "/review", icon: MessageSquare, label: "Feedback" },
+        { href: "/score", icon: BarChart3, label: "Analitik" },
+        { href: "/profile", icon: User, label: "Profil" },
+      ]
+    : role === "admin"
+    ? [
+        { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
+        { href: "/admin#classes", icon: BookOpen, label: "Kelas" },
+        { href: "/admin#users", icon: Users, label: "Pengguna" },
+        { href: "/admin#reports", icon: BarChart3, label: "Laporan" },
+        { href: "/profile", icon: User, label: "Profil" },
+      ]
+    : mobileNav;
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 lg:hidden z-40 flex items-center justify-around"
@@ -137,8 +168,8 @@ export function BottomNav() {
         height: "68px",
       }}
     >
-      {mobileNav.map((item) => {
-        const isActive = pathname === item.href;
+      {navItems.map((item) => {
+        const isActive = !item.href.includes("#") && pathname === item.href;
         return (
           <Link
             key={item.href}

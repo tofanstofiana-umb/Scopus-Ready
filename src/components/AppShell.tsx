@@ -1,7 +1,8 @@
 "use client";
 import { ReactNode } from "react";
 import { Sidebar, BottomNav } from "./Sidebar";
-import { Bell, Search } from "lucide-react";
+import { Bell, ChevronDown, Search } from "lucide-react";
+import { BrandMark } from "./BrandMark";
 
 interface AppShellProps {
   children: ReactNode;
@@ -12,8 +13,11 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, role = "peserta", title, subtitle, actions }: AppShellProps) {
+  const roleLabel = role === "trainer" ? "Trainer" : role === "admin" ? "Admin" : "Peserta";
+  const roleInitial = role === "trainer" ? "S" : role === "admin" ? "A" : "T";
+
   return (
-    <div className="min-h-screen flex" style={{ background: "#F4F6F8" }}>
+    <div className="app-canvas min-h-screen flex">
       {/* Sidebar (desktop) */}
       <div className="hidden lg:block flex-shrink-0">
         <Sidebar role={role} />
@@ -22,53 +26,62 @@ export function AppShell({ children, role = "peserta", title, subtitle, actions 
       {/* Main content */}
       <div className="flex-1 min-w-0 min-h-screen flex flex-col">
         {/* TopBar */}
-        <header
-          className="sticky top-0 z-30 flex items-center justify-between px-6 lg:px-8"
-          style={{
-            height: "64px",
-            background: "rgba(244,246,248,0.9)",
-            backdropFilter: "blur(12px)",
-            borderBottom: "1px solid rgba(8,43,92,0.08)",
-          }}
-        >
-          <div>
+        <header className="app-topbar sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="lg:hidden">
+              <BrandMark compact />
+            </div>
+            <div className="min-w-0">
             {title && (
-              <h1 className="font-bold text-gray-900 text-lg leading-tight">{title}</h1>
+              <h1 className="truncate text-base font-extrabold leading-tight text-[#082B5C] sm:text-lg">{title}</h1>
             )}
             {subtitle && (
-              <p className="text-xs text-gray-500">{subtitle}</p>
+              <p className="mt-0.5 hidden truncate text-[11px] font-medium text-slate-500 sm:block">{subtitle}</p>
             )}
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {actions}
             <button
               id="btn-search"
-              className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors hover:bg-gray-200"
+              className="topbar-icon"
+              aria-label="Cari"
             >
-              <Search size={18} className="text-gray-500" />
+              <Search size={17} />
             </button>
             <button
               id="btn-notifications"
-              className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors hover:bg-gray-200 relative"
+              className="topbar-icon relative"
+              aria-label="Notifikasi"
             >
-              <Bell size={18} className="text-gray-500" />
+              <Bell size={17} />
               <span
-                className="absolute top-2 right-2 w-2 h-2 rounded-full"
+                className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full ring-2 ring-white"
                 style={{ background: "#EF4444" }}
               />
+            </button>
+            <button className="topbar-profile" aria-label="Menu pengguna">
+              <span className="topbar-avatar">{roleInitial}</span>
+              <span className="hidden text-left xl:block">
+                <span className="block text-[11px] font-bold leading-none text-[#082B5C]">
+                  {role === "trainer" ? "Siti Rahayu" : role === "admin" ? "Administrator" : "Tofan"}
+                </span>
+                <span className="mt-1 block text-[9px] leading-none text-slate-400">{roleLabel}</span>
+              </span>
+              <ChevronDown size={13} className="hidden text-slate-400 xl:block" />
             </button>
           </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-6 lg:p-8 pb-24 lg:pb-8">
-          {children}
+        <main className="app-main flex-1 px-4 py-5 pb-24 sm:px-6 lg:px-8 lg:py-6 lg:pb-8">
+          <div className="mx-auto w-full max-w-[1440px]">{children}</div>
         </main>
       </div>
 
       {/* Bottom nav (mobile) */}
       <div className="lg:hidden">
-        <BottomNav />
+        <BottomNav role={role} />
       </div>
     </div>
   );

@@ -1,23 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --navy: #082B5C;
-  --blue: #0B4EA2;
-  --gold: #D9A441;
+  --navy: #06265A;
+  --navy-deep: #031B42;
+  --blue: #0A4CA3;
+  --gold: #E8AA2E;
+  --gold-light: #F4BF4F;
   --white: #FFFFFF;
-  --gray-light: #F4F6F8;
-  --gray-mid: #E8ECF0;
+  --gray-light: #F5F7FB;
+  --gray-mid: #E5EAF1;
   --gray-dark: #6B7280;
   --success: #10B981;
   --warning: #F59E0B;
   --danger: #EF4444;
   --sidebar-width: 256px;
+  --font-app: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 html {
@@ -25,11 +26,164 @@ html {
 }
 
 body {
-  font-family: var(--font-plus-jakarta), var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  font-family: var(--font-app);
   background-color: var(--gray-light);
-  color: #1F2937;
+  color: #13213B;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* Application shell */
+.app-canvas {
+  background:
+    radial-gradient(circle at 92% 3%, rgba(10, 76, 163, 0.05), transparent 24rem),
+    #f5f7fb;
+}
+
+.app-sidebar {
+  background:
+    radial-gradient(circle at 30% 8%, rgba(24, 100, 196, 0.28), transparent 14rem),
+    linear-gradient(180deg, #062b64 0%, #031b42 100%);
+  border-right: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 8px 0 28px rgba(3, 27, 66, 0.09);
+}
+
+.app-topbar {
+  min-height: 62px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid #e3e8f0;
+  box-shadow: 0 4px 18px rgba(8, 43, 92, 0.035);
+}
+
+.app-main {
+  min-width: 0;
+}
+
+.topbar-icon {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e1e7ef;
+  border-radius: 10px;
+  color: #526078;
+  background: #fff;
+  transition: 160ms ease;
+}
+
+.topbar-icon:hover {
+  color: var(--blue);
+  border-color: rgba(10, 76, 163, 0.28);
+  background: #f8fbff;
+}
+
+.topbar-profile {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 8px;
+  margin-left: 2px;
+  padding: 3px 7px 3px 3px;
+  border: 1px solid #e1e7ef;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.topbar-avatar {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--gold-light), #c78818);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* Brand mark — code-native interpretation of the book and pen reference */
+.brand-lockup {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-symbol {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  color: var(--gold-light);
+}
+
+.brand-book {
+  position: absolute;
+  inset: 7px 0 0 0;
+  width: 34px;
+  height: 29px;
+}
+
+.brand-pen {
+  position: absolute;
+  right: -1px;
+  top: 2px;
+  width: 23px;
+  height: 23px;
+  color: #ffcb5a;
+  transform: rotate(-5deg);
+}
+
+.brand-star {
+  position: absolute;
+  left: 10px;
+  top: 0;
+  width: 11px;
+  height: 11px;
+  fill: var(--gold-light);
+}
+
+.brand-name {
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+.brand-name span {
+  margin-left: 1px;
+  font-size: 7px;
+  vertical-align: top;
+}
+
+.brand-tagline {
+  margin-top: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
 }
 
 /* Custom scrollbar */
@@ -88,11 +242,18 @@ body {
 
 /* Card hover effects */
 .card-hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 .card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(8, 43, 92, 0.12);
+  transform: translateY(-1px);
+  border-color: rgba(10, 76, 163, 0.22) !important;
+  box-shadow: 0 10px 26px rgba(8, 43, 92, 0.09);
+}
+
+.bg-white.rounded-2xl.shadow-sm,
+.bg-white.rounded-2xl.card-hover {
+  border: 1px solid #dfe5ed;
+  box-shadow: 0 3px 12px rgba(8, 43, 92, 0.045);
 }
 
 /* Score ring */
@@ -119,10 +280,10 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 600;
   color: rgba(255, 255, 255, 0.65);
   transition: all 0.2s ease;
   cursor: pointer;
@@ -133,10 +294,10 @@ body {
   color: rgba(255, 255, 255, 0.9);
 }
 .nav-item.active {
-  background: rgba(217, 164, 65, 0.15);
-  color: var(--gold);
-  border-left: 3px solid var(--gold);
-  padding-left: 13px;
+  background: linear-gradient(90deg, rgba(244, 191, 79, 0.19), rgba(244, 191, 79, 0.07));
+  color: var(--gold-light);
+  border-left: 2px solid var(--gold-light);
+  padding-left: 10px;
 }
 .nav-item.active svg {
   color: var(--gold);
@@ -145,11 +306,11 @@ body {
 /* Input styles */
 .input-field {
   width: 100%;
-  padding: 12px 16px;
-  border: 1.5px solid #E2E8F0;
-  border-radius: 10px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 14px;
+  padding: 11px 13px;
+  border: 1px solid #D7DEE8;
+  border-radius: 8px;
+  font-family: var(--font-app);
+  font-size: 13px;
   color: #1F2937;
   background: white;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -158,7 +319,7 @@ body {
 }
 .input-field:focus {
   border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(11, 78, 162, 0.08);
+  box-shadow: 0 0 0 3px rgba(11, 78, 162, 0.09);
 }
 .input-field::placeholder {
   color: #9CA3AF;
@@ -169,14 +330,14 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, var(--blue) 0%, #1a5fb4 100%);
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #062b64 0%, #0b4ea2 100%);
   color: white;
   border: none;
-  border-radius: 10px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: 8px;
+  font-family: var(--font-app);
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
@@ -191,13 +352,13 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 24px;
+  padding: 10px 18px;
   background: linear-gradient(135deg, var(--gold) 0%, #c8932d 100%);
   color: white;
   border: none;
-  border-radius: 10px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 14px;
+  border-radius: 8px;
+  font-family: var(--font-app);
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -212,13 +373,13 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 24px;
+  padding: 9px 17px;
   background: transparent;
   color: var(--blue);
   border: 1.5px solid var(--blue);
-  border-radius: 10px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 14px;
+  border-radius: 8px;
+  font-family: var(--font-app);
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -233,13 +394,13 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 8px 12px;
   background: transparent;
   color: var(--gray-dark);
   border: none;
   border-radius: 8px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 14px;
+  font-family: var(--font-app);
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -251,10 +412,88 @@ body {
 
 /* Progress bar */
 .progress-bar {
-  height: 6px;
+  height: 5px;
   background: var(--gray-mid);
   border-radius: 99px;
   overflow: hidden;
+}
+
+/* Shared page language inspired by the supplied wireframe */
+.wireframe-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  color: white;
+  background:
+    radial-gradient(circle at 88% 0%, rgba(46, 126, 226, 0.3), transparent 20rem),
+    linear-gradient(135deg, #052554 0%, #073878 100%);
+  box-shadow: 0 10px 28px rgba(3, 27, 66, 0.14);
+}
+
+.section-card {
+  overflow: hidden;
+  border: 1px solid #dfe5ed;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(8, 43, 92, 0.045);
+}
+
+.section-card-header {
+  display: flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid #e9edf3;
+}
+
+.worksheet-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 0 8px;
+}
+
+.worksheet-step {
+  display: flex;
+  align-items: center;
+  color: #9aa5b5;
+}
+
+.worksheet-step:not(:last-child)::after {
+  content: "";
+  width: clamp(28px, 6vw, 64px);
+  height: 1px;
+  background: #cfd7e2;
+}
+
+.worksheet-step span {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #cad3df;
+  border-radius: 999px;
+  background: #f8fafc;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.worksheet-step.is-active span,
+.worksheet-step.is-complete span {
+  border-color: #082b5c;
+  color: white;
+  background: #082b5c;
+}
+
+@media (max-width: 640px) {
+  .app-topbar { min-height: 56px; }
+  .brand-symbol { width: 32px; height: 32px; flex-basis: 32px; }
+  .brand-book { width: 29px; height: 25px; }
+  .brand-pen { width: 19px; height: 19px; }
+  .worksheet-step:not(:last-child)::after { width: 22px; }
 }
 .progress-fill {
   height: 100%;
