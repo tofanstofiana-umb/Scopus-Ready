@@ -1,6 +1,8 @@
 # SCOPUS READY™ Digital Workbook
 
-Checkpoint Sprint 1 menyediakan autentikasi Supabase nyata, session cookie, role peserta/trainer/admin, route protection, schema inti, dan Row Level Security (RLS). Persistence Problem Builder dan feedback tetap menjadi checkpoint sprint berikutnya.
+Checkpoint Sprint 1 menyediakan autentikasi Supabase nyata, session cookie, role peserta/trainer/admin, route protection, schema inti, dan Row Level Security (RLS).
+
+Checkpoint Sprint 2 menambahkan proyek manuskrip persisten: peserta dapat membuat, melihat daftar, membuka, melakukan refresh, dan login kembali tanpa kehilangan proyek. Problem Builder, autosave, dan feedback tetap menjadi checkpoint sprint berikutnya.
 
 ## Setup Supabase Local
 
@@ -60,6 +62,16 @@ Prasyarat: Node.js 22, Docker Desktop aktif, dan ruang disk kosong yang cukup un
 
 Registrasi publik melalui `/register` selalu menghasilkan role `participant`. Trainer dan admin hanya dapat ditetapkan melalui jalur administratif.
 
+## Mencoba Sprint 2
+
+1. Login sebagai peserta melalui `/login`.
+2. Buka **Proyek Manuskrip** dari sidebar.
+3. Pilih **Buat Proyek**, isi metadata, dan pilih kelas pendampingan.
+4. Setelah proyek dibuat, aplikasi membuka halaman detail proyek.
+5. Refresh halaman atau logout dan login kembali; proyek tetap tersedia di `/projects`.
+
+Trainer hanya dapat membaca proyek yang dihubungkan ke kelasnya. Worksheet belum diaktifkan pada checkpoint ini.
+
 ## Supabase hosted
 
 Untuk lingkungan hosted, buat proyek Supabase, isi URL dan anon key proyek, lalu jalankan migration melalui workflow CLI yang terhubung. Jangan menjalankan `supabase:seed-auth` terhadap proyek remote dan jangan memasukkan service-role key ke browser.
@@ -96,6 +108,7 @@ Jalankan `npm run test:e2e`. Perintah ini melakukan build produksi, menyalakan s
 - Route diperiksa berdasarkan role; akses data tetap ditegakkan oleh PostgreSQL Row Level Security.
 - Participant hanya dapat membaca atau mengubah data miliknya.
 - Trainer hanya dapat membaca peserta dan proyek dalam kelas yang ditugaskan.
+- Pemilihan kelas proyek diperiksa ulang pada Data Access Layer dan PostgreSQL RLS.
 - `SUPABASE_SERVICE_ROLE_KEY` tidak digunakan oleh runtime client.
 - Score penuh tidak ditampilkan sampai rubrik lengkap tersedia.
 
