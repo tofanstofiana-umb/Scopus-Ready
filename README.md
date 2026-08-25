@@ -4,6 +4,8 @@ Checkpoint Sprint 1 menyediakan autentikasi Supabase nyata, session cookie, role
 
 Checkpoint Sprint 2 menambahkan proyek manuskrip persisten: peserta dapat membuat, melihat daftar, membuka, melakukan refresh, dan login kembali tanpa kehilangan proyek. Problem Builder, autosave, dan feedback tetap menjadi checkpoint sprint berikutnya.
 
+Checkpoint Sprint 3 mengaktifkan lima jawaban Problem Builder dengan penyimpanan manual ke database, pemuatan kembali setelah refresh/login ulang, validasi berlapis, dan deteksi konflik antar-sesi. Autosave dan feedback trainer belum diaktifkan.
+
 ## Setup Supabase Local
 
 Prasyarat: Node.js 22, Docker Desktop aktif, dan ruang disk kosong yang cukup untuk image Supabase.
@@ -70,7 +72,17 @@ Registrasi publik melalui `/register` selalu menghasilkan role `participant`. Tr
 4. Setelah proyek dibuat, aplikasi membuka halaman detail proyek.
 5. Refresh halaman atau logout dan login kembali; proyek tetap tersedia di `/projects`.
 
-Trainer hanya dapat membaca proyek yang dihubungkan ke kelasnya. Worksheet belum diaktifkan pada checkpoint ini.
+Trainer hanya dapat membaca proyek yang dihubungkan ke kelasnya. Pada checkpoint Sprint 2, worksheet belum diaktifkan.
+
+## Mencoba Sprint 3
+
+1. Buka salah satu proyek melalui `/projects`.
+2. Pilih **Buka Problem Builder**.
+3. Isi lima pertanyaan menggunakan tombol langkah atau tombol **Lanjut**.
+4. Klik **Simpan Jawaban** dan tunggu status **Tersimpan di database**.
+5. Refresh halaman atau logout dan login kembali untuk memastikan jawaban tetap tersedia.
+
+Penyimpanan pada Sprint 3 masih manual. Perubahan yang belum diikuti klik **Simpan Jawaban** belum dikirim ke database.
 
 ## Supabase hosted
 
@@ -109,6 +121,7 @@ Jalankan `npm run test:e2e`. Perintah ini melakukan build produksi, menyalakan s
 - Participant hanya dapat membaca atau mengubah data miliknya.
 - Trainer hanya dapat membaca peserta dan proyek dalam kelas yang ditugaskan.
 - Pemilihan kelas proyek diperiksa ulang pada Data Access Layer dan PostgreSQL RLS.
+- RPC Problem Builder hanya menerima lima field yang diizinkan, membatasi panjang jawaban, memeriksa kepemilikan proyek, dan menolak penyimpanan versi lama.
 - `SUPABASE_SERVICE_ROLE_KEY` tidak digunakan oleh runtime client.
 - Score penuh tidak ditampilkan sampai rubrik lengkap tersedia.
 

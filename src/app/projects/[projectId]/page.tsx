@@ -35,9 +35,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
             <div><dt className="text-xs font-bold uppercase tracking-wider text-slate-400">Status</dt><dd className="mt-1 text-sm font-semibold text-slate-700">Aktif</dd></div>
           </dl>
         </section>
-        <section className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6">
-          <h2 className="font-extrabold text-[#082B5C]">Problem Builder</h2>
-          <p className="mt-1 text-sm text-slate-500">Penyimpanan worksheet akan diaktifkan pada Sprint 3 setelah persistence proyek ini disetujui.</p>
+        <section className="section-card p-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div><h2 className="font-extrabold text-[#082B5C]">Problem Builder</h2><p className="mt-1 text-sm text-slate-500">Susun masalah penelitian melalui lima pertanyaan terstruktur.</p></div>
+            <Link href={`/projects/${projectId}/workbook/problem`} className="btn-primary">Buka Problem Builder</Link>
+          </div>
         </section>
       </div>
     </AppShell>

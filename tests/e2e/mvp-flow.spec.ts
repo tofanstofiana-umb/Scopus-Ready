@@ -101,3 +101,60 @@ test("participant creates and reopens a persistent manuscript project", async ({
     }
   }
 });
+
+test("participant manually saves and restores five Problem Builder answers", async ({ page }, testInfo) => {
+  const participant = accounts.participant;
+  const serviceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  test.skip(
+    !participant.email || !participant.password || !serviceUrl || !serviceRoleKey,
+    "Set participant and local Supabase service credentials first",
+  );
+
+  let createdProjectId: string | undefined;
+  const title = `Problem Builder E2E ${testInfo.project.name} ${Date.now()}`;
+  const answers = [
+    { label: "Apa topik penelitian Anda?", value: "Pembelajaran digital di perguruan tinggi" },
+    { label: "Fenomena apa yang sedang terjadi?", value: "Penggunaan platform digital meningkat pesat." },
+    { label: "Apa yang menjadi masalah?", value: "Keterlibatan mahasiswa belum optimal." },
+    { label: "Apa bukti bahwa masalah itu ada?", value: "Data kehadiran menunjukkan interaksi yang menurun." },
+    { label: "Mengapa masalah tersebut penting?", value: "Keterlibatan memengaruhi capaian hasil belajar." },
+  ];
+
+  try {
+    await login(page, participant);
+    await page.goto("/projects/new");
+    await page.getByLabel("Judul manuskrip").fill(title);
+    await page.getByLabel("Bidang penelitian").fill("Pendidikan Digital");
+    await page.getByRole("button", { name: /^Buat Proyek$/ }).click();
+    await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}$/);
+    createdProjectId = page.url().split("/").at(-1);
+
+    await page.getByRole("link", { name: "Buka Problem Builder" }).click();
+    for (const [index, answer] of answers.entries()) {
+      await page.getByLabel(answer.label).fill(answer.value);
+      if (index < answers.length - 1) {
+        await page.getByRole("button", { name: "Lanjut" }).click();
+      }
+    }
+    await page.getByRole("button", { name: "Simpan Jawaban" }).click();
+    await expect(page.getByText("Tersimpan di database")).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByLabel(answers[0].label)).toHaveValue(answers[0].value);
+    await page.getByRole("button", { name: "Buka langkah 5" }).click();
+    await expect(page.getByLabel(answers[4].label)).toHaveValue(answers[4].value);
+
+    await page.context().clearCookies();
+    await login(page, participant);
+    await page.goto(`/projects/${createdProjectId}/workbook/problem`);
+    await expect(page.getByLabel(answers[0].label)).toHaveValue(answers[0].value);
+  } finally {
+    if (createdProjectId) {
+      const service = createClient(serviceUrl!, serviceRoleKey!, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      await service.from("projects").delete().eq("id", createdProjectId);
+    }
+  }
+});
