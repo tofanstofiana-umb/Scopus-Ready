@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { canAccessRoleRoute, canReadProject, roleHomeRoute } from "@/domain/permissions/permissions";
+import {
+  canAccessRoleRoute,
+  canReadProject,
+  isProtectedRoute,
+  matchesRoutePrefix,
+  roleHomeRoute,
+} from "@/domain/permissions/permissions";
 
 describe("role permissions", () => {
   it("prevents participants from opening trainer and admin routes", () => {
@@ -31,5 +37,13 @@ describe("role permissions", () => {
   it("only permits the assigned trainer", () => {
     expect(canReadProject({ role: "trainer", userId: "trainer-a", ownerId: "p", trainerId: "trainer-a" })).toBe(true);
     expect(canReadProject({ role: "trainer", userId: "trainer-b", ownerId: "p", trainerId: "trainer-a" })).toBe(false);
+  });
+
+  it("matches complete route segments instead of similarly named public paths", () => {
+    expect(matchesRoutePrefix("/admin/users", "/admin")).toBe(true);
+    expect(matchesRoutePrefix("/administrator", "/admin")).toBe(false);
+    expect(isProtectedRoute("/projects/123")).toBe(true);
+    expect(isProtectedRoute("/projects-public")).toBe(false);
+    expect(isProtectedRoute("/onboarding")).toBe(true);
   });
 });

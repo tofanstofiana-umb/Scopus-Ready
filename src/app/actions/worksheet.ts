@@ -1,6 +1,7 @@
 "use server";
 
 import { saveProblemBuilderSchema } from "@/validation/problem-builder.schema";
+import { accessErrorResult } from "@/domain/errors/access-errors";
 import {
   saveProblemWorksheet,
   WorksheetAccessError,
@@ -20,13 +21,18 @@ export async function saveProblemBuilderAction(input: {
     const answer = await saveProblemWorksheet(parsed.data);
     return { ok: true, data: { updatedAt: answer.updated_at, completionPercent: answer.completion_percent, status: answer.status } };
   } catch (error) {
+    const accessError = accessErrorResult<{
+      updatedAt: string;
+      completionPercent: number;
+      status: WorksheetStatus;
+    }>(error);
+    if (accessError) return accessError;
     if (error instanceof WorksheetConflictError) {
       return { ok: false, code: "CONFLICT", message: "Data berubah di perangkat atau sesi lain. Muat ulang sebelum melanjutkan." };
     }
     if (error instanceof WorksheetAccessError) {
       return { ok: false, code: "FORBIDDEN", message: "Anda tidak memiliki akses untuk mengubah worksheet proyek ini." };
     }
-    if (error instanceof Error && error.message === "UNAUTHORIZED") return { ok: false, code: "UNAUTHORIZED", message: "Sesi Anda telah berakhir. Silakan login kembali." };
     console.error("worksheet save failure", error instanceof Error ? error.message : "unknown");
     return { ok: false, code: "DATABASE", message: "Terjadi masalah saat menyimpan data. Silakan coba lagi." };
   }

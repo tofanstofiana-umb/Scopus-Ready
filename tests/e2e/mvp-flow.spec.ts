@@ -33,6 +33,18 @@ async function login(page: import("@playwright/test").Page, account: RoleAccount
   await expect(page).toHaveURL(new RegExp(`${account.destination}$`));
 }
 
+test("anonymous and expired sessions are redirected to login", async ({ page }) => {
+  await page.goto("/dashboard");
+  await expect(page).toHaveURL(/\/login\?next=%2Fdashboard$/);
+
+  const participant = accounts.participant;
+  test.skip(!participant.email || !participant.password, "Set E2E participant credentials first");
+  await login(page, participant);
+  await page.context().clearCookies();
+  await page.goto("/projects");
+  await expect(page).toHaveURL(/\/login\?next=%2Fprojects$/);
+});
+
 for (const [role, account] of Object.entries(accounts) as [keyof typeof accounts, RoleAccount][]) {
   test(`${role} is sent to the correct role home`, async ({ page }) => {
     test.skip(!account.email || !account.password, `Set E2E ${role} credentials first`);

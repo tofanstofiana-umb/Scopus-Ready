@@ -106,6 +106,15 @@ describe.skipIf(!configured)("project persistence and RLS", () => {
     expect(createError).toBeNull();
     expect(project?.id).toBeTruthy();
     createdProjectIds.push(project!.id);
+
+    const { error: invalidTitleError } = await participant.from("projects").insert({
+      owner_id: participantUser.id,
+      class_id: membership!.class_id,
+      title: "x",
+      research_stage: "idea",
+      status: "active",
+    });
+    expect(invalidTitleError).not.toBeNull();
     await participant.auth.signOut();
 
     const { client: restoredParticipant } = await signIn(participantEmail!, participantPassword!);

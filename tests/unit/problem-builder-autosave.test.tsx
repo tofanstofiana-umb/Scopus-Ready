@@ -140,4 +140,33 @@ describe("Problem Builder autosave", () => {
     expect(mockedSave).toHaveBeenCalledTimes(2);
     expect(screen.getByText("Tersimpan otomatis di database")).toBeVisible();
   });
+
+  it("offers a login path instead of retrying when the session expires", async () => {
+    mockedSave.mockResolvedValue({
+      ok: false,
+      code: "UNAUTHORIZED",
+      message: "Sesi Anda telah berakhir. Silakan login kembali.",
+    });
+    render(
+      <ProblemBuilderForm
+        projectId="2f29b16e-cd44-4a7e-9a84-a358902794e8"
+        initialContent={emptyContent}
+        initialUpdatedAt={null}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Apa topik penelitian Anda?"), {
+      target: { value: "Topik dengan sesi kedaluwarsa" },
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(AUTOSAVE_DELAY_MS);
+    });
+
+    expect(screen.getByText("Sesi Anda telah berakhir. Silakan login kembali.")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Login Kembali" })).toHaveAttribute(
+      "href",
+      "/login?error=session_expired",
+    );
+    expect(screen.queryByRole("button", { name: "Coba Lagi" })).not.toBeInTheDocument();
+  });
 });

@@ -12,6 +12,8 @@ Checkpoint Sprint 5 mengaktifkan dashboard kelas trainer berbasis data nyata, pe
 
 Checkpoint Sprint 6 menjadikan worksheet status dan assessment sebagai satu-satunya sumber progres dan score. Dashboard peserta, halaman Score, dan tampilan trainer membaca hasil `getProjectMetrics()` yang sama; tidak ada lagi angka 72 atau 78 yang berdiri sendiri pada route produksi.
 
+Checkpoint Sprint 7 memperkeras MVP dengan error boundary, respons session-expired yang konsisten, pencocokan route per segmen, validasi identifier pada data access layer, constraint database untuk proyek dan rubrik, penutupan direct write assessment, serta tes otomatis akses lintas akun dan kegagalan autosave.
+
 ## Setup Supabase Local
 
 Prasyarat: Node.js 22, Docker Desktop aktif, dan ruang disk kosong yang cukup untuk image Supabase.
@@ -117,6 +119,16 @@ Untuk lingkungan hosted, buat proyek Supabase, isi URL dan anon key proyek, lalu
 
 Tanpa environment Supabase, route yang dilindungi ditutup dan pengguna diarahkan kembali ke login. Tidak ada fallback mock untuk autentikasi produksi.
 
+## Mencoba Sprint 7
+
+1. Buka `/dashboard` tanpa login; aplikasi harus mengarahkan ke `/login`.
+2. Login sebagai peserta lalu coba buka `/trainer` atau `/admin`; aplikasi harus menampilkan halaman akses ditolak.
+3. Matikan koneksi saat ada perubahan Problem Builder. Aplikasi mempertahankan perubahan di layar dan menyediakan **Coba Lagi**.
+4. Jika sesi berakhir ketika autosave berjalan, aplikasi menampilkan **Login Kembali**, bukan mengulang permintaan tanpa sesi.
+5. URL proyek atau kelas yang tidak valid menampilkan halaman data tidak ditemukan tanpa membocorkan detail database.
+
+Assessment pada MVP 0.1 bersifat read-only. Penulisan nilai baru akan dibuka melalui RPC tervalidasi bersama UI rubrik pada MVP 0.2.
+
 ## Quality gates
 
 ```bash
@@ -153,6 +165,8 @@ Jalankan `npm run test:e2e`. Perintah ini melakukan build produksi, menyalakan s
 - Progres dihitung dari status seluruh modul; score dihitung dari assessment rubrik lengkap dan tidak dapat diedit sebagai angka dashboard.
 - `SUPABASE_SERVICE_ROLE_KEY` tidak digunakan oleh runtime client.
 - Score penuh tidak ditampilkan sampai rubrik lengkap tersedia.
+- Pencocokan proteksi route menggunakan batas segmen URL sehingga nama path yang mirip tidak salah diklasifikasikan.
+- Direct write assessment ditutup sampai RPC penilaian tervalidasi tersedia pada MVP 0.2.
 
 ## Struktur MVP
 

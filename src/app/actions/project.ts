@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { accessErrorResult } from "@/domain/errors/access-errors";
 import { createProjectSchema } from "@/validation/project.schema";
 import { createProject, ProjectClassAccessError } from "@/services/project.service";
 import type { ActionResult } from "@/types/auth";
@@ -19,6 +20,8 @@ export async function createProjectAction(_state: ActionResult, formData: FormDa
     const project = await createProject(parsed.data);
     projectId = project.id;
   } catch (error) {
+    const accessError = accessErrorResult(error);
+    if (accessError) return accessError;
     if (error instanceof ProjectClassAccessError) {
       return { ok: false, code: "FORBIDDEN", message: error.message };
     }

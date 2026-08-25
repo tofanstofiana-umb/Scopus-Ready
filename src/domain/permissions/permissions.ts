@@ -1,5 +1,29 @@
 import type { UserRole } from "@/types/auth";
 
+export const protectedRoutePrefixes = [
+  "/dashboard",
+  "/projects",
+  "/workbook",
+  "/score",
+  "/review",
+  "/trainer",
+  "/admin",
+  "/profile",
+  "/manuscript",
+  "/journals",
+  "/action-plan",
+  "/library",
+  "/onboarding",
+] as const;
+
+export function matchesRoutePrefix(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
+export function isProtectedRoute(pathname: string): boolean {
+  return protectedRoutePrefixes.some((prefix) => matchesRoutePrefix(pathname, prefix));
+}
+
 export function roleHomeRoute(role: UserRole): "/dashboard" | "/trainer" | "/admin" {
   if (role === "trainer") return "/trainer";
   if (role === "admin") return "/admin";
@@ -7,10 +31,10 @@ export function roleHomeRoute(role: UserRole): "/dashboard" | "/trainer" | "/adm
 }
 
 export function canAccessRoleRoute(role: UserRole, pathname: string): boolean {
-  if (pathname.startsWith("/admin")) return role === "admin";
-  if (pathname.startsWith("/trainer")) return role === "trainer" || role === "admin";
-  if (pathname.startsWith("/score")) return true;
-  if (["/dashboard", "/projects", "/workbook", "/review", "/manuscript", "/journals", "/action-plan", "/library"].some((prefix) => pathname.startsWith(prefix))) {
+  if (matchesRoutePrefix(pathname, "/admin")) return role === "admin";
+  if (matchesRoutePrefix(pathname, "/trainer")) return role === "trainer" || role === "admin";
+  if (matchesRoutePrefix(pathname, "/score") || matchesRoutePrefix(pathname, "/profile")) return true;
+  if (["/dashboard", "/projects", "/workbook", "/review", "/manuscript", "/journals", "/action-plan", "/library", "/onboarding"].some((prefix) => matchesRoutePrefix(pathname, prefix))) {
     return role === "participant" || role === "admin";
   }
   return true;

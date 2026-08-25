@@ -115,7 +115,7 @@ describe.skipIf(!configured)("Trainer feedback persistence and RLS", () => {
     const secondary = await createProjectWithAnswer("secondary");
     const { client: assignedTrainer, user: trainerUser } = await signIn(trainerEmail!, trainerPassword!);
 
-    const { error: validAssessmentError } = await assignedTrainer.from("assessments").insert({
+    const { error: directAssessmentError } = await assignedTrainer.from("assessments").insert({
       project_id: primary.project.id,
       worksheet_answer_id: primary.answer.id,
       assessor_id: trainerUser.id,
@@ -123,7 +123,7 @@ describe.skipIf(!configured)("Trainer feedback persistence and RLS", () => {
       score: 7,
       max_score: 8,
     });
-    expect(validAssessmentError).toBeNull();
+    expect(directAssessmentError).not.toBeNull();
     const { error: mismatchedAssessmentError } = await assignedTrainer.from("assessments").insert({
       project_id: primary.project.id,
       worksheet_answer_id: secondary.answer.id,

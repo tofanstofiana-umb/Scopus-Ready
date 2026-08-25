@@ -1,27 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { canAccessRoleRoute } from "@/domain/permissions/permissions";
+import { canAccessRoleRoute, isProtectedRoute } from "@/domain/permissions/permissions";
 import { getSupabaseConfig } from "./config";
 import type { UserRole } from "@/types/auth";
 
-const protectedPrefixes = [
-  "/dashboard",
-  "/projects",
-  "/workbook",
-  "/score",
-  "/review",
-  "/trainer",
-  "/admin",
-  "/profile",
-  "/manuscript",
-  "/journals",
-  "/action-plan",
-  "/library",
-];
-
 export async function updateSession(request: NextRequest) {
   const { url, anonKey, configured } = getSupabaseConfig();
-  const isProtected = protectedPrefixes.some((prefix) => request.nextUrl.pathname.startsWith(prefix));
+  const isProtected = isProtectedRoute(request.nextUrl.pathname);
 
   if (!configured || !url || !anonKey) {
     if (!isProtected) return NextResponse.next({ request });

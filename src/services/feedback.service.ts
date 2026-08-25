@@ -3,6 +3,7 @@ import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireIdentity } from "./auth.service";
 import type { FeedbackPriority, TrainerFeedback } from "@/types/feedback";
+import { projectIdSchema } from "@/validation/project.schema";
 
 export class FeedbackAccessError extends Error {
   constructor() {
@@ -12,6 +13,7 @@ export class FeedbackAccessError extends Error {
 }
 
 export async function getWorksheetFeedback(worksheetAnswerId: string): Promise<TrainerFeedback[]> {
+  if (!projectIdSchema.safeParse(worksheetAnswerId).success) return [];
   await requireIdentity();
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.from("feedback").select("*").eq("worksheet_answer_id", worksheetAnswerId).order("created_at", { ascending: false });

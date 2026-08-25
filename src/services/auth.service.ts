@@ -1,6 +1,10 @@
 import "server-only";
 
 import { cache } from "react";
+import {
+  AuthenticationRequiredError,
+  PermissionDeniedError,
+} from "@/domain/errors/access-errors";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Profile, UserRole } from "@/types/auth";
 
@@ -21,7 +25,7 @@ export const getCurrentIdentity = cache(async () => {
 
 export async function requireIdentity(roles?: UserRole[]) {
   const identity = await getCurrentIdentity();
-  if (!identity) throw new Error("UNAUTHORIZED");
-  if (roles && !roles.includes(identity.profile.role)) throw new Error("FORBIDDEN");
+  if (!identity) throw new AuthenticationRequiredError();
+  if (roles && !roles.includes(identity.profile.role)) throw new PermissionDeniedError();
   return identity;
 }

@@ -2,6 +2,7 @@ import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireIdentity } from "./auth.service";
+import { projectIdSchema } from "@/validation/project.schema";
 
 export async function getTrainerClasses() {
   const { profile } = await requireIdentity(["trainer", "admin"]);
@@ -14,6 +15,7 @@ export async function getTrainerClasses() {
 }
 
 export async function getTrainerParticipants(classId: string) {
+  if (!projectIdSchema.safeParse(classId).success) return [];
   await requireIdentity(["trainer", "admin"]);
   const supabase = await createSupabaseServerClient();
   const { data: members, error } = await supabase
@@ -30,6 +32,7 @@ export async function getTrainerParticipants(classId: string) {
 }
 
 export async function getTrainerClass(classId: string) {
+  if (!projectIdSchema.safeParse(classId).success) return null;
   await requireIdentity(["trainer", "admin"]);
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.from("classes").select("id,name,code,status,start_date,end_date,trainer_id").eq("id", classId).maybeSingle();

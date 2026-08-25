@@ -133,7 +133,7 @@ export function ProblemBuilderForm({ projectId, initialContent, initialUpdatedAt
         {saveStatus === "saving" && <><LoaderCircle className="animate-spin" size={15} /> Menyimpan ke database...</>}
         {saveStatus === "saved" && <><CheckCircle2 className="text-emerald-500" size={15} /> Tersimpan otomatis di database</>}
         {saveStatus === "idle" && <span>{hasUnsavedChanges ? "Menunggu autosave..." : initialUpdatedAt ? "Semua perubahan tersimpan." : "Mulai mengetik untuk mengaktifkan autosave."}</span>}
-        {saveStatus === "error" && <><AlertCircle size={15} /><span className="flex-1">{message}</span><button type="button" onClick={() => errorCode === "CONFLICT" ? window.location.reload() : void save()} className="inline-flex items-center gap-1 font-bold"><RotateCcw size={13} /> {errorCode === "CONFLICT" ? "Muat Ulang" : "Coba Lagi"}</button></>}
+        {saveStatus === "error" && <><AlertCircle size={15} /><span className="flex-1">{message}</span>{errorCode === "UNAUTHORIZED" ? <a href="/login?error=session_expired" className="font-bold underline">Login Kembali</a> : <button type="button" onClick={() => errorCode === "CONFLICT" ? window.location.reload() : void save()} className="inline-flex items-center gap-1 font-bold"><RotateCcw size={13} /> {errorCode === "CONFLICT" ? "Muat Ulang" : "Coba Lagi"}</button>}</>}
       </div>
     </div>
   );
