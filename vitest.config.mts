@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
   return {
     resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
     test: {
-      include: ["tests/unit/**/*.test.ts", "tests/integration/**/*.test.ts"],
+      include: ["tests/unit/**/*.test.{ts,tsx}", "tests/integration/**/*.test.{ts,tsx}"],
       environment: "jsdom",
       env,
       setupFiles: ["./tests/setup.ts"],

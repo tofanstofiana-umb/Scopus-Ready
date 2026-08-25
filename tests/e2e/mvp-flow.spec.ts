@@ -102,7 +102,7 @@ test("participant creates and reopens a persistent manuscript project", async ({
   }
 });
 
-test("participant manually saves and restores five Problem Builder answers", async ({ page }, testInfo) => {
+test("participant autosaves and restores five Problem Builder answers", async ({ page }, testInfo) => {
   const participant = accounts.participant;
   const serviceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -112,6 +112,9 @@ test("participant manually saves and restores five Problem Builder answers", asy
   );
 
   let createdProjectId: string | undefined;
+  const service = createClient(serviceUrl!, serviceRoleKey!, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
   const title = `Problem Builder E2E ${testInfo.project.name} ${Date.now()}`;
   const answers = [
     { label: "Apa topik penelitian Anda?", value: "Pembelajaran digital di perguruan tinggi" },
@@ -137,8 +140,19 @@ test("participant manually saves and restores five Problem Builder answers", asy
         await page.getByRole("button", { name: "Lanjut" }).click();
       }
     }
-    await page.getByRole("button", { name: "Simpan Jawaban" }).click();
-    await expect(page.getByText("Tersimpan di database")).toBeVisible();
+    await expect(page.getByText("Menunggu autosave...")).toBeVisible();
+    await expect(page.getByText("Tersimpan otomatis di database")).toBeVisible();
+    await expect.poll(async () => {
+      const { data } = await service
+        .from("worksheet_answers")
+        .select("content")
+        .eq("project_id", createdProjectId!)
+        .maybeSingle();
+      return data?.content;
+    }).toEqual(Object.fromEntries(answers.map((answer, index) => [
+      ["topic", "phenomenon", "problem", "evidence", "importance"][index],
+      answer.value,
+    ])));
 
     await page.reload();
     await expect(page.getByLabel(answers[0].label)).toHaveValue(answers[0].value);
@@ -151,9 +165,6 @@ test("participant manually saves and restores five Problem Builder answers", asy
     await expect(page.getByLabel(answers[0].label)).toHaveValue(answers[0].value);
   } finally {
     if (createdProjectId) {
-      const service = createClient(serviceUrl!, serviceRoleKey!, {
-        auth: { autoRefreshToken: false, persistSession: false },
-      });
       await service.from("projects").delete().eq("id", createdProjectId);
     }
   }

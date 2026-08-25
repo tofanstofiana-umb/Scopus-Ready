@@ -21,11 +21,11 @@ export default async function ProblemBuilderPage({ params }: { params: Promise<{
             <h2 className="font-extrabold text-[#082B5C]">Cara mengisi</h2>
             <ol className="mt-3 list-decimal space-y-2 pl-4 text-xs leading-relaxed text-slate-600">
               <li>Isi kelima pertanyaan secara bertahap.</li>
-              <li>Klik <strong>Simpan Jawaban</strong> setelah melakukan perubahan.</li>
-              <li>Pastikan status berubah menjadi tersimpan di database.</li>
+              <li>Berhenti mengetik sejenak agar autosave berjalan.</li>
+              <li>Pastikan status berubah menjadi tersimpan otomatis di database.</li>
             </ol>
           </div>
-          <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-xs leading-relaxed text-slate-600">Autosave dan feedback trainer akan diaktifkan pada sprint berikutnya.</div>
+          <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-xs leading-relaxed text-slate-600">Gunakan <strong>Simpan Sekarang</strong> bila Anda perlu menyimpan tanpa menunggu. Feedback trainer akan diaktifkan pada sprint berikutnya.</div>
           <Link href={`/projects/${projectId}`} className="btn-outline w-full justify-center">Kembali ke Proyek</Link>
         </aside>
       </div>

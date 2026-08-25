@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, CheckCircle2, LoaderCircle, RotateCcw, Save } from "lucide-react";
 import { saveProblemBuilderAction } from "@/app/actions/worksheet";
 import type { ProblemBuilderContent, SaveStatus } from "@/types/worksheet";
+
+export const AUTOSAVE_DELAY_MS = 1200;
 
 const fields: Array<{ key: keyof ProblemBuilderContent; label: string; help: string; maxLength: number }> = [
   { key: "topic", label: "Apa topik penelitian Anda?", help: "Tuliskan topik umum yang ingin Anda teliti.", maxLength: 500 },
@@ -21,8 +23,12 @@ export function ProblemBuilderForm({ projectId, initialContent, initialUpdatedAt
   const [content, setContent] = useState(initialContent);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [message, setMessage] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [activeStep, setActiveStep] = useState(0);
   const updatedAtRef = useRef(initialUpdatedAt);
+  const contentRef = useRef(initialContent);
+  const lastSavedContentRef = useRef(initialContent);
+  const savingRef = useRef(false);
   const [lastSavedContent, setLastSavedContent] = useState(initialContent);
   const completedFields = useMemo(
     () => fields.filter((field) => String(content[field.key]).trim().length > 0).length,
@@ -33,24 +39,67 @@ export function ProblemBuilderForm({ projectId, initialContent, initialUpdatedAt
     [content, lastSavedContent],
   );
 
-  async function save() {
+  const save = useCallback(async () => {
+    if (savingRef.current) return;
+    const contentToSave = contentRef.current;
+    if (JSON.stringify(contentToSave) === JSON.stringify(lastSavedContentRef.current)) return;
+
+    savingRef.current = true;
     setSaveStatus("saving");
     setMessage(null);
-    const result = await saveProblemBuilderAction({ projectId, content, lastKnownUpdatedAt: updatedAtRef.current });
-    if (result.ok && result.data) {
-      updatedAtRef.current = result.data.updatedAt;
-      setLastSavedContent(content);
-      setSaveStatus("saved");
-      return;
+    setErrorCode(null);
+    try {
+      const result = await saveProblemBuilderAction({
+        projectId,
+        content: contentToSave,
+        lastKnownUpdatedAt: updatedAtRef.current,
+      });
+
+      if (result.ok && result.data) {
+        updatedAtRef.current = result.data.updatedAt;
+        lastSavedContentRef.current = contentToSave;
+        setLastSavedContent(contentToSave);
+        const changedWhileSaving = JSON.stringify(contentRef.current) !== JSON.stringify(contentToSave);
+        setSaveStatus(changedWhileSaving ? "idle" : "saved");
+        return;
+      }
+      setSaveStatus("error");
+      setErrorCode(result.code ?? null);
+      setMessage(result.message || Object.values(result.fieldErrors ?? {}).flat()[0] || "Gagal menyimpan.");
+    } catch {
+      setSaveStatus("error");
+      setErrorCode("NETWORK");
+      setMessage("Koneksi ke server terputus. Perubahan belum tersimpan.");
+    } finally {
+      savingRef.current = false;
     }
-    setSaveStatus("error");
-    setMessage(result.message || Object.values(result.fieldErrors ?? {}).flat()[0] || "Gagal menyimpan.");
-  }
+  }, [projectId]);
+
+  useEffect(() => {
+    if (!hasUnsavedChanges || saveStatus === "saving" || saveStatus === "error") return;
+    const timer = window.setTimeout(() => void save(), AUTOSAVE_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [content, hasUnsavedChanges, save, saveStatus]);
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warnBeforeLeaving);
+    return () => window.removeEventListener("beforeunload", warnBeforeLeaving);
+  }, [hasUnsavedChanges]);
 
   function updateField(key: keyof ProblemBuilderContent, value: string) {
-    setContent((current) => ({ ...current, [key]: value }));
-    setSaveStatus("idle");
+    setContent((current) => {
+      const next = { ...current, [key]: value };
+      contentRef.current = next;
+      return next;
+    });
+    if (!savingRef.current) setSaveStatus("idle");
     setMessage(null);
+    setErrorCode(null);
   }
 
   const field = fields[activeStep];
@@ -74,7 +123,7 @@ export function ProblemBuilderForm({ projectId, initialContent, initialUpdatedAt
             <button type="button" className="btn-outline" disabled={activeStep === 0} onClick={() => setActiveStep((step) => Math.max(0, step - 1))}>Kembali</button>
             <div className="flex gap-2">
               <button type="button" className="btn-outline" disabled={activeStep === fields.length - 1} onClick={() => setActiveStep((step) => Math.min(fields.length - 1, step + 1))}>Lanjut</button>
-              <button type="button" className="btn-primary" disabled={saveStatus === "saving" || !hasUnsavedChanges} onClick={() => void save()}><Save size={15} /> Simpan Jawaban</button>
+              <button type="button" className="btn-primary" disabled={saveStatus === "saving" || !hasUnsavedChanges} onClick={() => void save()}><Save size={15} /> Simpan Sekarang</button>
             </div>
           </div>
         </div>
@@ -82,9 +131,9 @@ export function ProblemBuilderForm({ projectId, initialContent, initialUpdatedAt
 
       <div aria-live="polite" className={`flex items-center gap-2 rounded-xl border p-3 text-xs ${saveStatus === "error" ? "border-red-200 bg-red-50 text-red-700" : "border-slate-200 bg-white text-slate-500"}`}>
         {saveStatus === "saving" && <><LoaderCircle className="animate-spin" size={15} /> Menyimpan ke database...</>}
-        {saveStatus === "saved" && <><CheckCircle2 className="text-emerald-500" size={15} /> Tersimpan di database</>}
-        {saveStatus === "idle" && <span>{hasUnsavedChanges ? "Perubahan belum disimpan. Klik Simpan Jawaban." : initialUpdatedAt ? "Tidak ada perubahan baru." : "Isi jawaban lalu simpan ke database."}</span>}
-        {saveStatus === "error" && <><AlertCircle size={15} /><span className="flex-1">{message}</span><button type="button" onClick={() => void save()} className="inline-flex items-center gap-1 font-bold"><RotateCcw size={13} /> Coba Lagi</button></>}
+        {saveStatus === "saved" && <><CheckCircle2 className="text-emerald-500" size={15} /> Tersimpan otomatis di database</>}
+        {saveStatus === "idle" && <span>{hasUnsavedChanges ? "Menunggu autosave..." : initialUpdatedAt ? "Semua perubahan tersimpan." : "Mulai mengetik untuk mengaktifkan autosave."}</span>}
+        {saveStatus === "error" && <><AlertCircle size={15} /><span className="flex-1">{message}</span><button type="button" onClick={() => errorCode === "CONFLICT" ? window.location.reload() : void save()} className="inline-flex items-center gap-1 font-bold"><RotateCcw size={13} /> {errorCode === "CONFLICT" ? "Muat Ulang" : "Coba Lagi"}</button></>}
       </div>
     </div>
   );

@@ -6,6 +6,8 @@ Checkpoint Sprint 2 menambahkan proyek manuskrip persisten: peserta dapat membua
 
 Checkpoint Sprint 3 mengaktifkan lima jawaban Problem Builder dengan penyimpanan manual ke database, pemuatan kembali setelah refresh/login ulang, validasi berlapis, dan deteksi konflik antar-sesi. Autosave dan feedback trainer belum diaktifkan.
 
+Checkpoint Sprint 4 mengaktifkan autosave nyata pada Problem Builder dengan debounce 1,2 detik, antrean penyimpanan tunggal, status menyimpan/berhasil/gagal, retry, dan perlindungan konflik antar-sesi. Tombol simpan manual tetap tersedia sebagai cadangan.
+
 ## Setup Supabase Local
 
 Prasyarat: Node.js 22, Docker Desktop aktif, dan ruang disk kosong yang cukup untuk image Supabase.
@@ -74,15 +76,15 @@ Registrasi publik melalui `/register` selalu menghasilkan role `participant`. Tr
 
 Trainer hanya dapat membaca proyek yang dihubungkan ke kelasnya. Pada checkpoint Sprint 2, worksheet belum diaktifkan.
 
-## Mencoba Sprint 3
+## Mencoba Sprint 4
 
-1. Buka salah satu proyek melalui `/projects`.
-2. Pilih **Buka Problem Builder**.
-3. Isi lima pertanyaan menggunakan tombol langkah atau tombol **Lanjut**.
-4. Klik **Simpan Jawaban** dan tunggu status **Tersimpan di database**.
-5. Refresh halaman atau logout dan login kembali untuk memastikan jawaban tetap tersedia.
+1. Buka Problem Builder dari salah satu proyek peserta.
+2. Ubah salah satu jawaban dan berhenti mengetik sejenak.
+3. Pastikan status berubah dari **Menunggu autosave...** menjadi **Menyimpan ke database...**, lalu **Tersimpan otomatis di database**.
+4. Refresh halaman atau logout dan login kembali; perubahan harus tetap tersedia.
+5. Tombol **Simpan Sekarang** dapat digunakan sebagai cadangan tanpa menunggu debounce.
 
-Penyimpanan pada Sprint 3 masih manual. Perubahan yang belum diikuti klik **Simpan Jawaban** belum dikirim ke database.
+Jika koneksi gagal, gunakan **Coba Lagi**. Jika data telah diubah dari sesi lain, gunakan **Muat Ulang** agar versi terbaru tidak tertimpa.
 
 ## Supabase hosted
 
