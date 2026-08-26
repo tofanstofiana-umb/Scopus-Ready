@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
+import { requirePageIdentity } from "@/services/page-auth.service";
 import { getUserProjects } from "@/services/project.service";
 import { FilePlus2, FileText } from "lucide-react";
 
@@ -18,6 +19,7 @@ const dateFormatter = new Intl.DateTimeFormat("id-ID", {
 });
 
 export default async function ProjectsPage() {
+  await requirePageIdentity(["participant", "admin"]);
   const projects = await getUserProjects();
 
   return (

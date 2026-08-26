@@ -18,5 +18,6 @@ describe("Problem Builder validation", () => {
     const content = { topic: "", phenomenon: "", problem: "", evidence: "", importance: "" };
     expect(saveProblemBuilderSchema.safeParse({ projectId: "not-a-uuid", content }).success).toBe(false);
     expect(saveProblemBuilderSchema.safeParse({ projectId: "2f29b16e-cd44-4a7e-9a84-a358902794e8", content, lastKnownUpdatedAt: "not-a-date" }).success).toBe(false);
+    expect(saveProblemBuilderSchema.safeParse({ projectId: "2f29b16e-cd44-4a7e-9a84-a358902794e8", content, lastKnownUpdatedAt: "2026-08-26T07:15:30+00:00" }).success).toBe(true);
   });
 });

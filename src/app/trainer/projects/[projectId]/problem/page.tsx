@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { FeedbackStatusForm } from "@/components/feedback/FeedbackStatusForm";
 import { TrainerFeedbackForm } from "@/components/feedback/TrainerFeedbackForm";
+import { requirePageIdentity } from "@/services/page-auth.service";
 import { getProject } from "@/services/project.service";
 import { getProblemWorksheet } from "@/services/worksheet.service";
 import { getWorksheetFeedback } from "@/services/feedback.service";
@@ -10,6 +11,7 @@ import { getProjectMetrics } from "@/services/progress.service";
 const labels: Record<string, string> = { topic: "Topik", phenomenon: "Fenomena", problem: "Masalah", evidence: "Bukti", importance: "Kepentingan" };
 
 export default async function TrainerProblemPage({ params }: { params: Promise<{ projectId: string }> }) {
+  await requirePageIdentity(["trainer", "admin"]);
   const { projectId } = await params;
   const [project, answer, metrics] = await Promise.all([getProject(projectId), getProblemWorksheet(projectId), getProjectMetrics(projectId)]);
   if (!project) notFound();

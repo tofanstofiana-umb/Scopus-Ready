@@ -4,6 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { ParticipantFeedbackList } from "@/components/feedback/ParticipantFeedbackList";
 import { ProblemBuilderForm } from "@/components/workbook/ProblemBuilderForm";
 import { getWorksheetFeedback } from "@/services/feedback.service";
+import { requirePageIdentity } from "@/services/page-auth.service";
 import { getProject } from "@/services/project.service";
 import { getProblemWorksheet } from "@/services/worksheet.service";
 import type { ProblemBuilderContent } from "@/types/worksheet";
@@ -11,6 +12,7 @@ import type { ProblemBuilderContent } from "@/types/worksheet";
 const emptyContent: ProblemBuilderContent = { topic: "", phenomenon: "", problem: "", evidence: "", importance: "" };
 
 export default async function ProblemBuilderPage({ params }: { params: Promise<{ projectId: string }> }) {
+  await requirePageIdentity(["participant", "admin"]);
   const { projectId } = await params;
   const [project, answer] = await Promise.all([getProject(projectId), getProblemWorksheet(projectId)]);
   if (!project) notFound();
@@ -32,7 +34,7 @@ export default async function ProblemBuilderPage({ params }: { params: Promise<{
               <li>Pastikan status berubah menjadi tersimpan otomatis di database.</li>
             </ol>
           </div>
-          <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-xs leading-relaxed text-slate-600">Gunakan <strong>Simpan Sekarang</strong> bila Anda perlu menyimpan tanpa menunggu. Feedback trainer akan diaktifkan pada sprint berikutnya.</div>
+          <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-xs leading-relaxed text-slate-600">Gunakan <strong>Simpan Sekarang</strong> bila Anda perlu menyimpan tanpa menunggu. Feedback trainer yang masuk akan tampil di bawah worksheet.</div>
           <Link href={`/projects/${projectId}`} className="btn-outline w-full justify-center">Kembali ke Proyek</Link>
         </aside>
       </div>

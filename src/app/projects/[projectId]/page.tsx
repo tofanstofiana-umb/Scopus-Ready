@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
+import { requirePageIdentity } from "@/services/page-auth.service";
 import { getProject } from "@/services/project.service";
 
 const stageLabels: Record<string, string> = {
@@ -13,6 +14,7 @@ const stageLabels: Record<string, string> = {
 };
 
 export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
+  await requirePageIdentity(["participant", "admin"]);
   const { projectId } = await params;
   const project = await getProject(projectId);
   if (!project) notFound();

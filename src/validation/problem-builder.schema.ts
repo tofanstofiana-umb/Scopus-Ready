@@ -12,7 +12,7 @@ export const problemBuilderContentSchema = z.object({
 export const saveProblemBuilderSchema = z.object({
   projectId: projectIdSchema,
   content: problemBuilderContentSchema,
-  lastKnownUpdatedAt: z.string().datetime().nullable().optional(),
+  lastKnownUpdatedAt: z.string().datetime({ offset: true }).nullable().optional(),
 });
 
 export type ProblemBuilderInput = z.infer<typeof saveProblemBuilderSchema>;

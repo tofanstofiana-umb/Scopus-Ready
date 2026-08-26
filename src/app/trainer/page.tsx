@@ -2,8 +2,10 @@ import Link from "next/link";
 import { ArrowRight, BookOpen, Users } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { getTrainerClasses, getTrainerParticipants } from "@/services/class.service";
+import { requirePageIdentity } from "@/services/page-auth.service";
 
 export default async function TrainerPage() {
+  await requirePageIdentity(["trainer", "admin"]);
   const classes = await getTrainerClasses();
   const classSummaries = await Promise.all(
     classes.map(async (trainerClass) => ({

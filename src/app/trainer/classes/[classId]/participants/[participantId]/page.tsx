@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { getTrainerClass, getTrainerParticipants } from "@/services/class.service";
+import { requirePageIdentity } from "@/services/page-auth.service";
 
 export default async function TrainerParticipantPage({ params }: { params: Promise<{ classId: string; participantId: string }> }) {
+  await requirePageIdentity(["trainer", "admin"]);
   const { classId, participantId } = await params;
   const [trainerClass, participants] = await Promise.all([getTrainerClass(classId), getTrainerParticipants(classId)]);
   const member = participants.find((item) => item.user_id === participantId);
