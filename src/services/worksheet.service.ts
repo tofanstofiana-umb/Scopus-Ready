@@ -3,6 +3,7 @@ import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireIdentity } from "./auth.service";
 import type { ProblemBuilderContent, WorksheetAnswer } from "@/types/worksheet";
+import type { StructuredWorksheetCode, StructuredWorksheetContent } from "@/domain/worksheets/structured-worksheets";
 import { projectIdSchema } from "@/validation/project.schema";
 
 const answerFields = "id,project_id,module_id,content,status,completion_percent,last_saved_at,created_at,updated_at";
@@ -21,14 +22,14 @@ export class WorksheetAccessError extends Error {
   }
 }
 
-export async function getProblemWorksheet(projectId: string): Promise<WorksheetAnswer | null> {
+async function getWorksheet<TContent>(projectId: string, moduleCode: string): Promise<WorksheetAnswer<TContent> | null> {
   if (!projectIdSchema.safeParse(projectId).success) return null;
   await requireIdentity(["participant", "trainer", "admin"]);
   const supabase = await createSupabaseServerClient();
   const { data: module, error: moduleError } = await supabase
     .from("worksheet_modules")
     .select("id")
-    .eq("code", "problem")
+    .eq("code", moduleCode)
     .eq("is_active", true)
     .single();
   if (moduleError) throw moduleError;
@@ -39,7 +40,40 @@ export async function getProblemWorksheet(projectId: string): Promise<WorksheetA
     .eq("module_id", module.id)
     .maybeSingle();
   if (error) throw error;
-  return data as WorksheetAnswer | null;
+  return data as WorksheetAnswer<TContent> | null;
+}
+
+export async function getProblemWorksheet(projectId: string): Promise<WorksheetAnswer<ProblemBuilderContent> | null> {
+  return getWorksheet<ProblemBuilderContent>(projectId, "problem");
+}
+
+export async function getStructuredWorksheet(
+  projectId: string,
+  moduleCode: StructuredWorksheetCode,
+): Promise<WorksheetAnswer<StructuredWorksheetContent> | null> {
+  return getWorksheet<StructuredWorksheetContent>(projectId, moduleCode);
+}
+
+export async function saveStructuredWorksheet(input: {
+  projectId: string;
+  moduleCode: StructuredWorksheetCode;
+  content: StructuredWorksheetContent;
+  lastKnownUpdatedAt?: string | null;
+}): Promise<WorksheetAnswer<StructuredWorksheetContent>> {
+  await requireIdentity(["participant"]);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("save_structured_worksheet", {
+    target_project_id: input.projectId,
+    target_module_code: input.moduleCode,
+    target_content: input.content,
+    last_known_updated_at: input.lastKnownUpdatedAt || null,
+  });
+  if (error) {
+    if (error.message.includes("VERSION_CONFLICT")) throw new WorksheetConflictError();
+    if (error.message.includes("ACCESS_DENIED")) throw new WorksheetAccessError();
+    throw error;
+  }
+  return data as WorksheetAnswer<StructuredWorksheetContent>;
 }
 
 export async function saveProblemWorksheet(input: {

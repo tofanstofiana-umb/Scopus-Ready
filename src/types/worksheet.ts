@@ -9,11 +9,11 @@ export interface ProblemBuilderContent {
   importance: string;
 }
 
-export interface WorksheetAnswer {
+export interface WorksheetAnswer<TContent = ProblemBuilderContent> {
   id: string;
   project_id: string;
   module_id: string;
-  content: ProblemBuilderContent;
+  content: TContent;
   status: WorksheetStatus;
   completion_percent: number;
   last_saved_at: string | null;

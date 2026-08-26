@@ -13,6 +13,12 @@ const stageLabels: Record<string, string> = {
   review_revision: "Review dan revisi",
 };
 
+const activeWorksheets = [
+  { code: "problem", title: "Problem Builder", description: "Susun masalah penelitian melalui lima pertanyaan terstruktur." },
+  { code: "literature", title: "Literature Map", description: "Petakan temuan, teori, metode, konteks, dan keterbatasan studi terdahulu." },
+  { code: "gap", title: "Gap Detector", description: "Rumuskan research gap yang spesifik dan didukung peta literatur." },
+];
+
 export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
   await requirePageIdentity(["participant", "admin"]);
   const { projectId } = await params;
@@ -37,10 +43,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
             <div><dt className="text-xs font-bold uppercase tracking-wider text-slate-400">Status</dt><dd className="mt-1 text-sm font-semibold text-slate-700">Aktif</dd></div>
           </dl>
         </section>
-        <section className="section-card p-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div><h2 className="font-extrabold text-[#082B5C]">Problem Builder</h2><p className="mt-1 text-sm text-slate-500">Susun masalah penelitian melalui lima pertanyaan terstruktur.</p></div>
-            <Link href={`/projects/${projectId}/workbook/problem`} className="btn-primary">Buka Problem Builder</Link>
+        <section>
+          <div className="mb-3"><h2 className="font-extrabold text-[#082B5C]">Worksheet Aktif</h2><p className="mt-1 text-sm text-slate-500">Kerjakan modul secara berurutan. Setiap jawaban tersimpan otomatis.</p></div>
+          <div className="grid gap-4 lg:grid-cols-3">
+            {activeWorksheets.map((worksheet, index) => (
+              <article key={worksheet.code} className="section-card flex flex-col p-6">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Modul {index + 1}</span>
+                <h3 className="mt-2 font-extrabold text-[#082B5C]">{worksheet.title}</h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-500">{worksheet.description}</p>
+                <Link href={`/projects/${projectId}/workbook/${worksheet.code}`} className="btn-primary mt-5 justify-center">Buka {worksheet.title}</Link>
+              </article>
+            ))}
           </div>
         </section>
       </div>
