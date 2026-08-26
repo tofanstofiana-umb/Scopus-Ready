@@ -13,6 +13,7 @@ import {
   Target,
 } from "lucide-react";
 import { BrandMark } from "@/components/BrandMark";
+import { ProductAttribution } from "@/components/ProductAttribution";
 import { loginAction } from "@/app/actions/auth";
 import type { ActionResult } from "@/types/auth";
 
@@ -125,8 +126,8 @@ export default function LoginPage() {
           </div>
 
           <footer className="hidden items-center justify-between border-t border-white/10 pt-5 text-[11px] text-white/45 lg:flex">
-            <span>© 2026 SCOPUS READY™</span>
-            <span>Digital Workbook</span>
+            <ProductAttribution inverse />
+            <span>SCOPUS READY™ Digital Workbook</span>
           </footer>
         </section>
 
@@ -280,6 +281,7 @@ export default function LoginPage() {
               Dengan masuk, Anda menggunakan ruang kerja sesuai peran dan hak
               akses akun.
             </p>
+            <div className="mt-4 lg:hidden"><ProductAttribution centered /></div>
           </div>
         </main>
       </div>

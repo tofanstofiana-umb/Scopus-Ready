@@ -4,9 +4,12 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "SCOPUS READY™ Digital Workbook",
+  applicationName: "SCOPUS READY™ Digital Workbook by Publish-Lab",
   description: "Platform pendamping penulisan artikel ilmiah. Dari Ide Penelitian Menjadi Manuskrip Siap Submit.",
   keywords: "scopus, jurnal internasional, artikel ilmiah, penelitian, manuskrip, workbook",
-  authors: [{ name: "SCOPUS READY™" }],
+  authors: [{ name: "Dr. Tofan Stofiana, M.Pd." }],
+  creator: "Dr. Tofan Stofiana, M.Pd.",
+  publisher: "Publish-Lab",
   openGraph: {
     title: "SCOPUS READY™ Digital Workbook",
     description: "Dari Ide Penelitian Menjadi Manuskrip Siap Submit",

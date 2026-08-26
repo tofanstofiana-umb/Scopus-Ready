@@ -47,7 +47,10 @@ export function ProjectReport({ report }: { report: ProjectReportData }) {
           {report.actionTasks.length === 0 ? <p className="mt-4 text-sm text-slate-500">Belum ada tugas tindak lanjut.</p> : <ol className="mt-4 space-y-3">{report.actionTasks.map((task, index) => <li key={task.id} className="flex gap-3"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-blue-50 text-xs font-bold text-blue-700">{index + 1}</span><div><div className="text-sm font-bold text-[#082B5C]">{task.title}</div><div className="text-xs text-slate-500">{task.status.replaceAll("_", " ")} · target {task.due_date ? dateFormatter.format(new Date(`${task.due_date}T00:00:00+07:00`)) : "belum ditetapkan"}</div></div></li>)}</ol>}
         </section>
 
-        <footer className="border-t border-slate-200 pt-4 text-[10px] text-slate-400">Dibuat {dateFormatter.format(new Date(report.generatedAt))}. Data laporan merupakan snapshot dari sumber data proyek pada saat laporan dibuka.</footer>
+        <footer className="border-t border-slate-200 pt-4 text-[10px] leading-5 text-slate-400">
+          <div className="font-bold text-[#0B4EA2]">Publish-Lab — Dikembangkan oleh Dr. Tofan Stofiana, M.Pd. © 2026</div>
+          <div>Dibuat {dateFormatter.format(new Date(report.generatedAt))}. Data laporan merupakan snapshot dari sumber data proyek pada saat laporan dibuka.</div>
+        </footer>
       </div>
     </article>
   );

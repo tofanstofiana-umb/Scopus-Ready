@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 import { Sidebar, BottomNav } from "./Sidebar";
 import { Bell, ChevronDown, Search } from "lucide-react";
 import { BrandMark } from "./BrandMark";
+import { ProductAttribution } from "./ProductAttribution";
 
 interface AppShellProps {
   children: ReactNode;
@@ -81,6 +82,12 @@ export function AppShell({ children, role = "peserta", title, subtitle, actions,
         <main className="app-main flex-1 px-4 py-5 pb-24 sm:px-6 lg:px-8 lg:py-6 lg:pb-8 print:bg-white print:p-0">
           <div className="mx-auto w-full max-w-[1440px]">{children}</div>
         </main>
+        <footer className="border-t border-slate-200 bg-white px-4 py-4 pb-24 sm:px-6 lg:px-8 lg:pb-4 print:hidden">
+          <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <ProductAttribution />
+            <span className="text-[10px] text-slate-400">SCOPUS READY™ Digital Workbook</span>
+          </div>
+        </footer>
       </div>
 
       {/* Bottom nav (mobile) */}

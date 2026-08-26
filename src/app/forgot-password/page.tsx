@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ProductAttribution } from "@/components/ProductAttribution";
 
 export default function ForgotPasswordPage() {
   return (
@@ -8,6 +9,7 @@ export default function ForgotPasswordPage() {
         <p className="mt-2 text-sm text-slate-500">Pemulihan password akan diaktifkan setelah konfigurasi email Supabase selesai.</p>
         <span className="badge mt-4 bg-amber-50 text-amber-700">Segera Hadir</span>
         <div><Link href="/login" className="btn-outline mt-6">Kembali</Link></div>
+        <div className="mt-6 border-t border-slate-100 pt-5"><ProductAttribution centered /></div>
       </div>
     </main>
   );

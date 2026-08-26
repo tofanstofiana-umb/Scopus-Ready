@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ShieldX } from "lucide-react";
+import { ProductAttribution } from "@/components/ProductAttribution";
 
 export default function UnauthorizedPage() {
   return (
@@ -9,6 +10,7 @@ export default function UnauthorizedPage() {
         <h1 className="mt-4 text-xl font-extrabold text-[#082B5C]">Akses Ditolak</h1>
         <p className="mt-2 text-sm text-slate-500">Anda tidak memiliki hak akses ke halaman ini.</p>
         <Link href="/login" className="btn-primary mt-6">Masuk dengan akun lain</Link>
+        <div className="mt-6 border-t border-slate-100 pt-5"><ProductAttribution centered /></div>
       </div>
     </main>
   );

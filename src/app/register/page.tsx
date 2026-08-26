@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BookOpen, ArrowRight, User, Mail, Lock, KeyRound } from "lucide-react";
 import { registerAction } from "@/app/actions/auth";
 import type { ActionResult } from "@/types/auth";
+import { ProductAttribution } from "@/components/ProductAttribution";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -118,6 +119,7 @@ export default function RegisterPage() {
               Masuk di sini
             </Link>
           </p>
+          <div className="mt-5 border-t border-gray-100 pt-5"><ProductAttribution centered /></div>
         </div>
       </div>
     </div>
