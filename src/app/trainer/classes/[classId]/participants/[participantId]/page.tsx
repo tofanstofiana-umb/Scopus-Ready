@@ -31,6 +31,8 @@ export default async function TrainerParticipantPage({ params }: { params: Promi
                 <Link href={`/trainer/projects/${project.id}/blueprint`} className="btn-outline">Buka Article Blueprint</Link>
                 <Link href={`/trainer/projects/${project.id}/method`} className="btn-outline">Buka Method Fit</Link>
                 <Link href={`/trainer/projects/${project.id}/scientific_story`} className="btn-outline">Buka Scientific Story</Link>
+                <Link href={`/trainer/projects/${project.id}/journal-target`} className="btn-outline">Buka Journal Target</Link>
+                <Link href={`/trainer/projects/${project.id}/internal_review`} className="btn-outline">Buka Internal Review</Link>
               </div>
             </div>
           </div>

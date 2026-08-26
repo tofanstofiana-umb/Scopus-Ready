@@ -9,6 +9,14 @@ export interface ProblemBuilderContent {
   importance: string;
 }
 
+export interface JournalTargetModuleContent {
+  active_count: number;
+  primary_count: number;
+  backup_count: number;
+  primary_assessed: boolean;
+  best_fit: number;
+}
+
 export interface WorksheetAnswer<TContent = ProblemBuilderContent> {
   id: string;
   project_id: string;

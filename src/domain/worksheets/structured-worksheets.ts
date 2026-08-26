@@ -1,4 +1,4 @@
-export type StructuredWorksheetCode = "literature" | "gap" | "novelty" | "blueprint" | "method" | "scientific_story";
+export type StructuredWorksheetCode = "literature" | "gap" | "novelty" | "blueprint" | "method" | "scientific_story" | "internal_review";
 
 export type StructuredWorksheetContent = Record<string, string>;
 
@@ -89,6 +89,18 @@ export const structuredWorksheets: Record<StructuredWorksheetCode, StructuredWor
       { key: "take_home_message", label: "Apa take-home message untuk pembaca?", help: "Rumuskan kesimpulan singkat tentang kontribusi dan makna penelitian Anda.", maxLength: 1000 },
     ],
   },
+  internal_review: {
+    code: "internal_review",
+    title: "Internal Review",
+    description: "Audit kesiapan manuskrip secara menyeluruh sebelum trainer memberikan persetujuan Reviewer Gate.",
+    fields: [
+      { key: "scope_alignment", label: "Apakah manuskrip selaras dengan scope jurnal target?", help: "Catat bukti kesesuaian topik, jenis artikel, audiens, dan fokus jurnal.", maxLength: 2000 },
+      { key: "argument_coherence", label: "Apakah argumen manuskrip tersusun koheren?", help: "Periksa kesinambungan masalah, gap, tujuan, hasil, pembahasan, dan kesimpulan.", maxLength: 2000 },
+      { key: "evidence_quality", label: "Apakah setiap klaim utama didukung bukti yang memadai?", help: "Tinjau kecukupan data, tabel, gambar, analisis, dan referensi pendukung.", maxLength: 2000 },
+      { key: "method_reporting", label: "Apakah metode dilaporkan secara lengkap dan dapat direplikasi?", help: "Periksa desain, sampel, instrumen, prosedur, etik, dan analisis.", maxLength: 2000 },
+      { key: "submission_readiness", label: "Apa yang masih harus diperbaiki sebelum submit?", help: "Tuliskan temuan audit akhir dan tindakan perbaikan yang masih diperlukan.", maxLength: 1500 },
+    ],
+  },
 };
 
 export function isStructuredWorksheetCode(value: string): value is StructuredWorksheetCode {
@@ -97,7 +109,8 @@ export function isStructuredWorksheetCode(value: string): value is StructuredWor
     || value === "novelty"
     || value === "blueprint"
     || value === "method"
-    || value === "scientific_story";
+    || value === "scientific_story"
+    || value === "internal_review";
 }
 
 export function createEmptyStructuredContent(code: StructuredWorksheetCode): StructuredWorksheetContent {

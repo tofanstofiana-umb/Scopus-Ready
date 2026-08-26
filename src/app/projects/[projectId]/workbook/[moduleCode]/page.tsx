@@ -35,6 +35,7 @@ export default async function StructuredWorksheetPage({
       <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
           {answer?.status === "needs_revision" && <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-800">Status {definition.title}: Perlu Revisi</div>}
+          {answer?.status === "completed" && <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-800">Status {definition.title}: Selesai · Reviewer Gate PASS</div>}
           <StructuredWorksheetForm
             projectId={projectId}
             moduleCode={moduleCode}

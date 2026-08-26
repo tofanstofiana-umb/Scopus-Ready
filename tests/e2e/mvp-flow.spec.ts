@@ -403,6 +403,93 @@ test("participant and trainer complete the Method Fit and Scientific Story flow"
   }
 });
 
+test("Journal Target progress drives Internal Review and Reviewer Gate", async ({ page }, testInfo) => {
+  const participant = accounts.participant;
+  const trainer = accounts.trainer;
+  const serviceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  test.skip(
+    !participant.email || !participant.password || !trainer.email || !trainer.password || !serviceUrl || !serviceRoleKey,
+    "Set participant, trainer, and local Supabase service credentials first",
+  );
+
+  const service = createClient(serviceUrl!, serviceRoleKey!, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  let createdProjectId: string | undefined;
+  const title = `Sprint 13 E2E ${testInfo.project.name} ${Date.now()}`;
+  const primaryName = `Primary Journal ${testInfo.project.name}`;
+  const backupName = `Backup Journal ${testInfo.project.name}`;
+  const reviewAnswers = [
+    { label: "Apakah manuskrip selaras dengan scope jurnal target?", value: "Scope, audiens, dan jenis artikel telah sesuai." },
+    { label: "Apakah argumen manuskrip tersusun koheren?", value: "Alur masalah hingga kesimpulan telah koheren." },
+    { label: "Apakah setiap klaim utama didukung bukti yang memadai?", value: "Klaim utama memiliki data dan referensi pendukung." },
+    { label: "Apakah metode dilaporkan secara lengkap dan dapat direplikasi?", value: "Metode, sampel, instrumen, dan analisis telah lengkap." },
+    { label: "Apa yang masih harus diperbaiki sebelum submit?", value: "Pemeriksaan akhir metadata telah diselesaikan." },
+  ];
+
+  try {
+    await login(page, participant);
+    await page.goto("/projects/new");
+    await page.getByLabel("Judul manuskrip").fill(title);
+    await page.getByLabel("Bidang penelitian").fill("Pendidikan Digital");
+    await page.getByRole("button", { name: /^Buat Proyek$/ }).click();
+    await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}$/);
+    createdProjectId = page.url().split("/").at(-1);
+
+    await page.getByRole("link", { name: "Buka Journal Target" }).click();
+    const addJournal = async (name: string, status: "primary" | "backup") => {
+      const addTargetSection = page.locator("section").filter({
+        has: page.getByRole("heading", { name: "Tambah Target Jurnal" }),
+      });
+      await addTargetSection.getByLabel("Nama jurnal").fill(name);
+      await addTargetSection.getByLabel("Penerbit").fill("SCOPUS READY Press");
+      await addTargetSection.getByLabel("Alamat website").fill("https://example.test/journal");
+      await addTargetSection.getByLabel("Quartile").selectOption("q1");
+      await addTargetSection.getByLabel("Status target").selectOption(status);
+      await addTargetSection.getByLabel("Kesesuaian scope").selectOption("5");
+      await addTargetSection.getByLabel("Kesesuaian jenis artikel").selectOption("5");
+      await addTargetSection.getByLabel("Kesesuaian audiens").selectOption("5");
+      await addTargetSection.getByLabel("Kesesuaian persyaratan").selectOption("5");
+      await addTargetSection.getByRole("button", { name: "Tambah Jurnal" }).click();
+      await expect(page.getByRole("heading", { name })).toBeVisible();
+    };
+    await addJournal(primaryName, "primary");
+    await expect(page.getByRole("heading", { name: "Journal Target 60%" })).toBeVisible();
+    await addJournal(backupName, "backup");
+    await expect(page.getByRole("heading", { name: "Journal Target 100%" })).toBeVisible();
+    await expect(page.getByText("Selesai", { exact: true }).first()).toBeVisible();
+
+    await page.goto(`/projects/${createdProjectId}/workbook/internal_review`);
+    for (const [index, answer] of reviewAnswers.entries()) {
+      await page.getByLabel(answer.label).fill(answer.value);
+      if (index < reviewAnswers.length - 1) await page.getByRole("button", { name: "Lanjut" }).click();
+    }
+    await expect(page.getByText("Tersimpan otomatis di database")).toBeVisible();
+
+    await page.context().clearCookies();
+    await login(page, trainer);
+    await page.goto(`/trainer/projects/${createdProjectId}/journal-target`);
+    await expect(page.getByRole("heading", { name: primaryName })).toBeVisible();
+    await expect(page.getByRole("heading", { name: backupName })).toBeVisible();
+    await page.goto(`/trainer/projects/${createdProjectId}/internal_review`);
+    await expect(page.getByText(reviewAnswers[0].value)).toBeVisible();
+    await page.getByRole("button", { name: "Setujui Internal Review" }).click();
+    await expect(page.getByText("Selesai · Gate PASS")).toBeVisible();
+
+    await page.goto(`/score?projectId=${createdProjectId}`);
+    const reviewerGate = page.getByRole("article").filter({ hasText: "Reviewer Gate" });
+    await expect(reviewerGate.getByText("pass", { exact: true })).toBeVisible();
+
+    await page.context().clearCookies();
+    await login(page, participant);
+    await page.goto(`/projects/${createdProjectId}/workbook/internal_review`);
+    await expect(page.getByText("Status Internal Review: Selesai · Reviewer Gate PASS")).toBeVisible();
+  } finally {
+    if (createdProjectId) await service.from("projects").delete().eq("id", createdProjectId);
+  }
+});
+
 test("trainer reviews Problem Builder and participant addresses persistent feedback", async ({ page }, testInfo) => {
   const participant = accounts.participant;
   const trainer = accounts.trainer;

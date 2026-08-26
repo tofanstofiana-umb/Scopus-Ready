@@ -21,6 +21,8 @@ const activeWorksheets = [
   { code: "blueprint", title: "Article Blueprint", description: "Susun struktur, argumen, dan rencana bukti untuk manuskrip Anda." },
   { code: "method", title: "Method Fit", description: "Selaraskan desain, sampel, data, instrumen, dan teknik analisis." },
   { code: "scientific_story", title: "Scientific Story", description: "Bangun alur ilmiah dari masalah hingga pesan utama manuskrip." },
+  { code: "journal_target", title: "Journal Target", description: "Bandingkan jurnal dan pilih target utama serta jurnal cadangan." },
+  { code: "internal_review", title: "Internal Review", description: "Audit manuskrip dan ajukan persetujuan Reviewer Gate kepada trainer." },
 ];
 
 export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
@@ -55,7 +57,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Modul {index + 1}</span>
                 <h3 className="mt-2 font-extrabold text-[#082B5C]">{worksheet.title}</h3>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-500">{worksheet.description}</p>
-                <Link href={`/projects/${projectId}/workbook/${worksheet.code}`} className="btn-primary mt-5 justify-center">Buka {worksheet.title}</Link>
+                <Link href={worksheet.code === "journal_target" ? `/journals?projectId=${projectId}` : `/projects/${projectId}/workbook/${worksheet.code}`} className="btn-primary mt-5 justify-center">Buka {worksheet.title}</Link>
               </article>
             ))}
           </div>

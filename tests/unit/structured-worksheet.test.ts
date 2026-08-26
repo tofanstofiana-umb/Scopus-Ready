@@ -10,20 +10,21 @@ const projectId = "2f29b16e-cd44-4a7e-9a84-a358902794e8";
 
 describe("structured worksheet definitions and validation", () => {
   it("provides exactly five empty fields for each active module", () => {
-    for (const code of ["literature", "gap", "novelty", "blueprint", "method", "scientific_story"] as const) {
+    for (const code of ["literature", "gap", "novelty", "blueprint", "method", "scientific_story", "internal_review"] as const) {
       expect(structuredWorksheets[code].fields).toHaveLength(5);
       expect(Object.keys(createEmptyStructuredContent(code))).toHaveLength(5);
       expect(Object.values(createEmptyStructuredContent(code))).toEqual(["", "", "", "", ""]);
     }
   });
 
-  it("accepts only the two supported module codes", () => {
+  it("accepts every supported structured module code", () => {
     expect(isStructuredWorksheetCode("literature")).toBe(true);
     expect(isStructuredWorksheetCode("gap")).toBe(true);
     expect(isStructuredWorksheetCode("novelty")).toBe(true);
     expect(isStructuredWorksheetCode("blueprint")).toBe(true);
     expect(isStructuredWorksheetCode("method")).toBe(true);
     expect(isStructuredWorksheetCode("scientific_story")).toBe(true);
+    expect(isStructuredWorksheetCode("internal_review")).toBe(true);
     expect(isStructuredWorksheetCode("problem")).toBe(false);
   });
 
@@ -64,5 +65,11 @@ describe("structured worksheet definitions and validation", () => {
     const story = createEmptyStructuredContent("scientific_story");
     story.take_home_message = "x".repeat(1001);
     expect(saveStructuredWorksheetSchema.safeParse({ projectId, moduleCode: "scientific_story", content: story }).success).toBe(false);
+  });
+
+  it("enforces the Internal Review submission readiness limit", () => {
+    const review = createEmptyStructuredContent("internal_review");
+    review.submission_readiness = "x".repeat(1501);
+    expect(saveStructuredWorksheetSchema.safeParse({ projectId, moduleCode: "internal_review", content: review }).success).toBe(false);
   });
 });

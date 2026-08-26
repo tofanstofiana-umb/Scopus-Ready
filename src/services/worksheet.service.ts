@@ -2,7 +2,7 @@ import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireIdentity } from "./auth.service";
-import type { ProblemBuilderContent, WorksheetAnswer } from "@/types/worksheet";
+import type { JournalTargetModuleContent, ProblemBuilderContent, WorksheetAnswer } from "@/types/worksheet";
 import type { StructuredWorksheetCode, StructuredWorksheetContent } from "@/domain/worksheets/structured-worksheets";
 import { projectIdSchema } from "@/validation/project.schema";
 
@@ -19,6 +19,13 @@ export class WorksheetAccessError extends Error {
   constructor() {
     super("ACCESS_DENIED");
     this.name = "WorksheetAccessError";
+  }
+}
+
+export class InternalReviewNotReadyError extends Error {
+  constructor() {
+    super("REVIEW_NOT_READY");
+    this.name = "InternalReviewNotReadyError";
   }
 }
 
@@ -52,6 +59,12 @@ export async function getStructuredWorksheet(
   moduleCode: StructuredWorksheetCode,
 ): Promise<WorksheetAnswer<StructuredWorksheetContent> | null> {
   return getWorksheet<StructuredWorksheetContent>(projectId, moduleCode);
+}
+
+export async function getJournalTargetWorksheet(
+  projectId: string,
+): Promise<WorksheetAnswer<JournalTargetModuleContent> | null> {
+  return getWorksheet<JournalTargetModuleContent>(projectId, "journal_target");
 }
 
 export async function saveStructuredWorksheet(input: {
@@ -94,4 +107,16 @@ export async function saveProblemWorksheet(input: {
     throw error;
   }
   return data as WorksheetAnswer;
+}
+
+export async function approveInternalReview(projectId: string): Promise<WorksheetAnswer<StructuredWorksheetContent>> {
+  await requireIdentity(["trainer", "admin"]);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("complete_internal_review", { target_project_id: projectId });
+  if (error) {
+    if (error.message.includes("REVIEW_NOT_READY")) throw new InternalReviewNotReadyError();
+    if (error.message.includes("ACCESS_DENIED")) throw new WorksheetAccessError();
+    throw error;
+  }
+  return data as WorksheetAnswer<StructuredWorksheetContent>;
 }

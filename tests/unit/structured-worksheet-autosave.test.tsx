@@ -129,4 +129,29 @@ describe("structured worksheet autosave", () => {
       content: expect.objectContaining({ central_message: "Pendampingan adaptif memperkuat keterlibatan." }),
     }));
   });
+
+  it("saves Internal Review without granting completion on the client", async () => {
+    mockedSave.mockResolvedValue({
+      ok: true,
+      data: { updatedAt: "2026-08-26T04:00:00.000Z", completionPercent: 20, status: "in_progress" },
+    });
+    render(
+      <StructuredWorksheetForm
+        projectId={projectId}
+        moduleCode="internal_review"
+        initialContent={createEmptyStructuredContent("internal_review")}
+        initialUpdatedAt={null}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Apakah manuskrip selaras dengan scope jurnal target?"), {
+      target: { value: "Scope dan audiens jurnal telah sesuai." },
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(STRUCTURED_AUTOSAVE_DELAY_MS);
+    });
+
+    expect(mockedSave).toHaveBeenCalledWith(expect.objectContaining({ moduleCode: "internal_review" }));
+    expect(screen.getByText("Tersimpan otomatis di database")).toBeVisible();
+  });
 });
