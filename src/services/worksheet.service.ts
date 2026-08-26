@@ -2,7 +2,7 @@ import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireIdentity } from "./auth.service";
-import type { JournalTargetModuleContent, ProblemBuilderContent, WorksheetAnswer } from "@/types/worksheet";
+import type { JournalTargetModuleContent, ProblemBuilderContent, RoadmapModuleContent, WorksheetAnswer } from "@/types/worksheet";
 import type { StructuredWorksheetCode, StructuredWorksheetContent } from "@/domain/worksheets/structured-worksheets";
 import { projectIdSchema } from "@/validation/project.schema";
 
@@ -65,6 +65,12 @@ export async function getJournalTargetWorksheet(
   projectId: string,
 ): Promise<WorksheetAnswer<JournalTargetModuleContent> | null> {
   return getWorksheet<JournalTargetModuleContent>(projectId, "journal_target");
+}
+
+export async function getRoadmapWorksheet(
+  projectId: string,
+): Promise<WorksheetAnswer<RoadmapModuleContent> | null> {
+  return getWorksheet<RoadmapModuleContent>(projectId, "roadmap");
 }
 
 export async function saveStructuredWorksheet(input: {

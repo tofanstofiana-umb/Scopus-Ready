@@ -23,6 +23,8 @@ export async function createFeedbackAction(_state: ActionResult, formData: FormD
     await createFeedback(parsed.data);
     revalidatePath(`/trainer/projects/${parsed.data.projectId}/problem`);
     revalidatePath(`/projects/${parsed.data.projectId}/workbook/problem`);
+    revalidatePath(`/trainer/projects/${parsed.data.projectId}/roadmap`);
+    revalidatePath(`/projects/${parsed.data.projectId}/roadmap`);
     return { ok: true, message: "Feedback berhasil disimpan." };
   } catch (error) {
     const accessError = accessErrorResult(error);
@@ -44,6 +46,7 @@ export async function markFeedbackAddressedAction(_state: ActionResult, formData
   try {
     await markFeedbackAddressed(parsed.data.feedbackId);
     revalidatePath(`/projects/${parsed.data.projectId}/workbook/problem`);
+    revalidatePath(`/projects/${parsed.data.projectId}/roadmap`);
     return { ok: true, message: "Feedback ditandai sudah ditindaklanjuti." };
   } catch (error) {
     const accessError = accessErrorResult(error);
@@ -63,6 +66,8 @@ export async function resolveFeedbackAction(_state: ActionResult, formData: Form
     await resolveFeedback(parsed.data.feedbackId);
     revalidatePath(`/trainer/projects/${parsed.data.projectId}/problem`);
     revalidatePath(`/projects/${parsed.data.projectId}/workbook/problem`);
+    revalidatePath(`/trainer/projects/${parsed.data.projectId}/roadmap`);
+    revalidatePath(`/projects/${parsed.data.projectId}/roadmap`);
     return { ok: true, message: "Feedback ditandai selesai." };
   } catch (error) {
     const accessError = accessErrorResult(error);

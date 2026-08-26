@@ -25,7 +25,14 @@ const activeWorksheets = [
   { code: "internal_review", title: "Internal Review", description: "Audit manuskrip dan ajukan persetujuan Reviewer Gate kepada trainer." },
   { code: "journal_adaptation", title: "Journal Adaptation", description: "Sesuaikan struktur dan paket manuskrip dengan author guidelines jurnal utama." },
   { code: "submission", title: "Submission Checklist", description: "Konfirmasikan seluruh berkas, metadata, etik, dan persyaratan sebelum submit." },
+  { code: "roadmap", title: "Publication Roadmap", description: "Susun milestone bertanggal dan pantau perjalanan publikasi dari Action Plan." },
 ];
+
+function worksheetHref(projectId: string, code: string) {
+  if (code === "journal_target") return `/journals?projectId=${projectId}`;
+  if (code === "roadmap") return `/projects/${projectId}/roadmap`;
+  return `/projects/${projectId}/workbook/${code}`;
+}
 
 export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
   await requirePageIdentity(["participant", "admin"]);
@@ -59,7 +66,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Modul {index + 1}</span>
                 <h3 className="mt-2 font-extrabold text-[#082B5C]">{worksheet.title}</h3>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-500">{worksheet.description}</p>
-                <Link href={worksheet.code === "journal_target" ? `/journals?projectId=${projectId}` : `/projects/${projectId}/workbook/${worksheet.code}`} className="btn-primary mt-5 justify-center">Buka {worksheet.title}</Link>
+                <Link href={worksheetHref(projectId, worksheet.code)} className="btn-primary mt-5 justify-center">Buka {worksheet.title}</Link>
               </article>
             ))}
           </div>

@@ -28,6 +28,8 @@ export async function createActionTaskAction(_state: ActionResult, formData: For
     await createActionTask(parsed.data);
     revalidatePath("/action-plan");
     revalidatePath("/manuscript");
+    revalidatePath(`/projects/${parsed.data.projectId}/roadmap`);
+    revalidatePath(`/trainer/projects/${parsed.data.projectId}/roadmap`);
     return { ok: true, message: "Tugas berhasil ditambahkan." };
   } catch (error) {
     const accessError = accessErrorResult(error);
@@ -51,6 +53,8 @@ export async function setActionTaskStatusAction(_state: ActionResult, formData: 
     await setActionTaskStatus(parsed.data.taskId, parsed.data.status);
     revalidatePath("/action-plan");
     revalidatePath("/manuscript");
+    revalidatePath(`/projects/${parsed.data.projectId}/roadmap`);
+    revalidatePath(`/trainer/projects/${parsed.data.projectId}/roadmap`);
     return { ok: true, message: "Status tugas diperbarui." };
   } catch (error) {
     const accessError = accessErrorResult(error);
@@ -67,6 +71,8 @@ export async function deleteActionTaskAction(_state: ActionResult, formData: For
     await deleteActionTask(parsed.data.taskId);
     revalidatePath("/action-plan");
     revalidatePath("/manuscript");
+    revalidatePath(`/projects/${parsed.data.projectId}/roadmap`);
+    revalidatePath(`/trainer/projects/${parsed.data.projectId}/roadmap`);
     return { ok: true, message: "Tugas dihapus." };
   } catch (error) {
     const accessError = accessErrorResult(error);

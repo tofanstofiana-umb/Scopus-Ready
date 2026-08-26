@@ -580,6 +580,94 @@ test("participant adapts a journal manuscript and completes the submission check
   }
 });
 
+test("Publication Roadmap is derived from Action Plan milestones", async ({ page }, testInfo) => {
+  const participant = accounts.participant;
+  const trainer = accounts.trainer;
+  const serviceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  test.skip(
+    !participant.email || !participant.password || !trainer.email || !trainer.password || !serviceUrl || !serviceRoleKey,
+    "Set participant, trainer, and local Supabase service credentials first",
+  );
+
+  const service = createClient(serviceUrl!, serviceRoleKey!, { auth: { autoRefreshToken: false, persistSession: false } });
+  let createdProjectId: string | undefined;
+  const title = `Sprint 15 E2E ${testInfo.project.name} ${Date.now()}`;
+  const milestones = [
+    { title: `Finalisasi manuskrip ${testInfo.project.name}`, date: "2026-09-01", priority: "high" },
+    { title: `Submit ke jurnal ${testInfo.project.name}`, date: "2026-09-08", priority: "medium" },
+    { title: `Pantau editorial review ${testInfo.project.name}`, date: "2026-09-15", priority: "medium" },
+  ] as const;
+  const feedbackComment = `Tambahkan bukti penyelesaian milestone publikasi ${testInfo.project.name}.`;
+
+  try {
+    await login(page, participant);
+    await page.goto("/projects/new");
+    await page.getByLabel("Judul manuskrip").fill(title);
+    await page.getByLabel("Bidang penelitian").fill("Pendidikan Digital");
+    await page.getByRole("button", { name: /^Buat Proyek$/ }).click();
+    await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}$/);
+    createdProjectId = page.url().split("/").at(-1);
+    await page.getByRole("link", { name: "Buka Publication Roadmap" }).click();
+
+    for (const milestone of milestones) {
+      await page.getByLabel("Tugas berikutnya").fill(milestone.title);
+      await page.getByLabel("Deskripsi").fill("Milestone publication roadmap yang dapat diverifikasi.");
+      await page.getByLabel("Tanggal target").fill(milestone.date);
+      await page.getByLabel("Prioritas").selectOption(milestone.priority);
+      await page.getByRole("button", { name: "Tambah Tugas" }).click();
+      await expect(page.getByRole("heading", { name: milestone.title })).toBeVisible();
+    }
+    await expect(page.getByRole("heading", { name: "Publication Roadmap 80%" })).toBeVisible();
+    await expect(page.getByText("Minimal 3 milestone")).toBeVisible();
+
+    for (const milestone of milestones) {
+      const card = page.getByRole("article").filter({ has: page.getByRole("heading", { name: milestone.title }) });
+      await card.getByRole("button", { name: "Mulai" }).click();
+      await card.getByRole("button", { name: "Tandai Selesai" }).click();
+    }
+    await expect(page.getByRole("heading", { name: "Publication Roadmap 100%" })).toBeVisible();
+    await expect(page.getByText("Selesai", { exact: true }).first()).toBeVisible();
+
+    await expect.poll(async () => {
+      const { data } = await service
+        .from("worksheet_answers")
+        .select("status,completion_percent,worksheet_modules!inner(code)")
+        .eq("project_id", createdProjectId!)
+        .eq("worksheet_modules.code", "roadmap")
+        .single();
+      return `${data?.status}:${data?.completion_percent}`;
+    }).toBe("completed:100");
+
+    await page.context().clearCookies();
+    await login(page, trainer);
+    await page.goto(`/trainer/projects/${createdProjectId}/roadmap`);
+    await expect(page.getByRole("heading", { name: milestones[0].title })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Publication Roadmap 100%" })).toBeVisible();
+    await page.getByLabel("Komentar").fill(feedbackComment);
+    await page.getByLabel("Prioritas").selectOption("high");
+    await page.getByRole("button", { name: "Kirim Feedback" }).click();
+    await expect(page.getByText("Feedback berhasil disimpan.")).toBeVisible();
+
+    await page.context().clearCookies();
+    await login(page, participant);
+    await page.goto(`/projects/${createdProjectId}/roadmap`);
+    await expect(page.getByText("Perlu Revisi", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText(feedbackComment)).toBeVisible();
+    await page.getByRole("button", { name: "Tandai Sudah Diperbaiki" }).click();
+    await expect(page.getByText("Menunggu Trainer")).toBeVisible();
+
+    await page.context().clearCookies();
+    await login(page, trainer);
+    await page.goto(`/trainer/projects/${createdProjectId}/roadmap`);
+    await page.getByRole("button", { name: "Tandai Selesai" }).click();
+    await expect(page.getByText("resolved", { exact: true })).toBeVisible();
+    await expect(page.getByText("Selesai", { exact: true }).first()).toBeVisible();
+  } finally {
+    if (createdProjectId) await service.from("projects").delete().eq("id", createdProjectId);
+  }
+});
+
 test("trainer reviews Problem Builder and participant addresses persistent feedback", async ({ page }, testInfo) => {
   const participant = accounts.participant;
   const trainer = accounts.trainer;

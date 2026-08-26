@@ -17,6 +17,13 @@ export interface JournalTargetModuleContent {
   best_fit: number;
 }
 
+export interface RoadmapModuleContent {
+  task_count: number;
+  dated_count: number;
+  high_priority_count: number;
+  completed_count: number;
+}
+
 export interface WorksheetAnswer<TContent = ProblemBuilderContent> {
   id: string;
   project_id: string;
