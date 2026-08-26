@@ -19,6 +19,8 @@ const activeWorksheets = [
   { code: "gap", title: "Gap Detector", description: "Rumuskan research gap yang spesifik dan didukung peta literatur." },
   { code: "novelty", title: "Novelty Builder", description: "Bangun klaim kebaruan dan kontribusi yang didukung bukti literatur." },
   { code: "blueprint", title: "Article Blueprint", description: "Susun struktur, argumen, dan rencana bukti untuk manuskrip Anda." },
+  { code: "method", title: "Method Fit", description: "Selaraskan desain, sampel, data, instrumen, dan teknik analisis." },
+  { code: "scientific_story", title: "Scientific Story", description: "Bangun alur ilmiah dari masalah hingga pesan utama manuskrip." },
 ];
 
 export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {

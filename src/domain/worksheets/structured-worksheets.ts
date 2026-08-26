@@ -1,4 +1,4 @@
-export type StructuredWorksheetCode = "literature" | "gap" | "novelty" | "blueprint";
+export type StructuredWorksheetCode = "literature" | "gap" | "novelty" | "blueprint" | "method" | "scientific_story";
 
 export type StructuredWorksheetContent = Record<string, string>;
 
@@ -65,10 +65,39 @@ export const structuredWorksheets: Record<StructuredWorksheetCode, StructuredWor
       { key: "evidence_plan", label: "Bukti apa yang mendukung setiap argumen?", help: "Pasangkan klaim utama dengan data, analisis, literatur, tabel, atau gambar yang relevan.", maxLength: 2000 },
     ],
   },
+  method: {
+    code: "method",
+    title: "Method Fit",
+    description: "Pastikan desain, data, instrumen, dan analisis benar-benar sesuai dengan tujuan penelitian.",
+    fields: [
+      { key: "research_design", label: "Desain penelitian apa yang paling sesuai?", help: "Jelaskan pendekatan dan desain yang dipilih serta hubungannya dengan tujuan penelitian.", maxLength: 1500 },
+      { key: "population_sample", label: "Siapa populasi dan bagaimana sampel ditentukan?", help: "Uraikan unit analisis, kriteria, teknik sampling, dan ukuran sampel.", maxLength: 2000 },
+      { key: "variables_data", label: "Variabel atau data apa yang diperlukan?", help: "Definisikan variabel, konstruk, indikator, atau jenis data yang akan dianalisis.", maxLength: 2000 },
+      { key: "instruments_procedure", label: "Bagaimana instrumen dan prosedur pengumpulan datanya?", help: "Jelaskan sumber data, instrumen, validitas, reliabilitas, dan tahapan pengumpulan.", maxLength: 2000 },
+      { key: "analysis_plan", label: "Bagaimana rencana analisis datanya?", help: "Pasangkan setiap tujuan atau pertanyaan penelitian dengan teknik analisis yang tepat.", maxLength: 2000 },
+    ],
+  },
+  scientific_story: {
+    code: "scientific_story",
+    title: "Scientific Story",
+    description: "Bangun alur ilmiah yang menghubungkan masalah, bukti, interpretasi, dan pesan utama manuskrip.",
+    fields: [
+      { key: "central_message", label: "Apa pesan ilmiah utama manuskrip Anda?", help: "Tuliskan satu pesan sentral yang ingin dipahami dan diingat pembaca.", maxLength: 1500 },
+      { key: "story_flow", label: "Bagaimana alur cerita dari masalah menuju jawaban?", help: "Susun urutan logis konteks, gap, tujuan, metode, hasil, dan implikasi.", maxLength: 2000 },
+      { key: "key_results", label: "Hasil kunci apa yang menopang cerita ilmiah?", help: "Pilih hasil paling relevan dan hindari memasukkan temuan yang tidak mendukung fokus utama.", maxLength: 2000 },
+      { key: "interpretation", label: "Bagaimana hasil tersebut harus diinterpretasikan?", help: "Hubungkan temuan dengan teori, penelitian terdahulu, konteks, dan batasannya.", maxLength: 2000 },
+      { key: "take_home_message", label: "Apa take-home message untuk pembaca?", help: "Rumuskan kesimpulan singkat tentang kontribusi dan makna penelitian Anda.", maxLength: 1000 },
+    ],
+  },
 };
 
 export function isStructuredWorksheetCode(value: string): value is StructuredWorksheetCode {
-  return value === "literature" || value === "gap" || value === "novelty" || value === "blueprint";
+  return value === "literature"
+    || value === "gap"
+    || value === "novelty"
+    || value === "blueprint"
+    || value === "method"
+    || value === "scientific_story";
 }
 
 export function createEmptyStructuredContent(code: StructuredWorksheetCode): StructuredWorksheetContent {

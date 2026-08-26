@@ -331,6 +331,78 @@ test("participant and trainer complete the Novelty Builder and Article Blueprint
   }
 });
 
+test("participant and trainer complete the Method Fit and Scientific Story flow", async ({ page }, testInfo) => {
+  const participant = accounts.participant;
+  const trainer = accounts.trainer;
+  const serviceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  test.skip(
+    !participant.email || !participant.password || !trainer.email || !trainer.password || !serviceUrl || !serviceRoleKey,
+    "Set participant, trainer, and local Supabase service credentials first",
+  );
+
+  const service = createClient(serviceUrl!, serviceRoleKey!, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  let createdProjectId: string | undefined;
+  const title = `Sprint 12 E2E ${testInfo.project.name} ${Date.now()}`;
+  const methodValue = "Studi longitudinal dengan pendekatan campuran.";
+  const storyValue = "Pendampingan adaptif memperkuat keterlibatan mahasiswa.";
+  const feedbackComment = `Perjelas justifikasi pemilihan desain ${testInfo.project.name}.`;
+
+  try {
+    await login(page, participant);
+    await page.goto("/projects/new");
+    await page.getByLabel("Judul manuskrip").fill(title);
+    await page.getByLabel("Bidang penelitian").fill("Pendidikan Digital");
+    await page.getByRole("button", { name: /^Buat Proyek$/ }).click();
+    await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}$/);
+    createdProjectId = page.url().split("/").at(-1);
+
+    await page.getByRole("link", { name: "Buka Method Fit" }).click();
+    await page.getByLabel("Desain penelitian apa yang paling sesuai?").fill(methodValue);
+    await expect(page.getByText("Tersimpan otomatis di database")).toBeVisible();
+
+    await page.goto(`/projects/${createdProjectId}`);
+    await page.getByRole("link", { name: "Buka Scientific Story" }).click();
+    await page.getByLabel("Apa pesan ilmiah utama manuskrip Anda?").fill(storyValue);
+    await expect(page.getByText("Tersimpan otomatis di database")).toBeVisible();
+
+    await expect.poll(async () => {
+      const { data } = await service
+        .from("worksheet_answers")
+        .select("content")
+        .eq("project_id", createdProjectId!);
+      return data?.map((answer) => answer.content);
+    }).toEqual(expect.arrayContaining([
+      expect.objectContaining({ research_design: methodValue }),
+      expect.objectContaining({ central_message: storyValue }),
+    ]));
+
+    await page.context().clearCookies();
+    await login(page, participant);
+    await page.goto(`/projects/${createdProjectId}/workbook/scientific_story`);
+    await expect(page.getByLabel("Apa pesan ilmiah utama manuskrip Anda?")).toHaveValue(storyValue);
+
+    await page.context().clearCookies();
+    await login(page, trainer);
+    await page.goto(`/trainer/projects/${createdProjectId}/method`);
+    await expect(page.getByText(methodValue)).toBeVisible();
+    await page.getByLabel("Komentar").fill(feedbackComment);
+    await page.getByLabel("Prioritas").selectOption("high");
+    await page.getByRole("button", { name: "Kirim Feedback" }).click();
+    await expect(page.getByText("Feedback berhasil disimpan.")).toBeVisible();
+
+    await page.context().clearCookies();
+    await login(page, participant);
+    await page.goto(`/projects/${createdProjectId}/workbook/method`);
+    await expect(page.getByText("Status Method Fit: Perlu Revisi")).toBeVisible();
+    await expect(page.getByText(feedbackComment)).toBeVisible();
+  } finally {
+    if (createdProjectId) await service.from("projects").delete().eq("id", createdProjectId);
+  }
+});
+
 test("trainer reviews Problem Builder and participant addresses persistent feedback", async ({ page }, testInfo) => {
   const participant = accounts.participant;
   const trainer = accounts.trainer;

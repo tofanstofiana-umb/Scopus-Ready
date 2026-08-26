@@ -11,7 +11,7 @@ export function structuredWorksheetContentSchema(code: StructuredWorksheetCode) 
 
 export const saveStructuredWorksheetSchema = z.object({
   projectId: projectIdSchema,
-  moduleCode: z.enum(["literature", "gap", "novelty", "blueprint"]),
+  moduleCode: z.enum(["literature", "gap", "novelty", "blueprint", "method", "scientific_story"]),
   content: z.record(z.string(), z.string()),
   lastKnownUpdatedAt: z.string().datetime({ offset: true }).nullable().optional(),
 }).superRefine((input, context) => {

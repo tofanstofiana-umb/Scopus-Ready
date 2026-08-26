@@ -10,7 +10,7 @@ const projectId = "2f29b16e-cd44-4a7e-9a84-a358902794e8";
 
 describe("structured worksheet definitions and validation", () => {
   it("provides exactly five empty fields for each active module", () => {
-    for (const code of ["literature", "gap", "novelty", "blueprint"] as const) {
+    for (const code of ["literature", "gap", "novelty", "blueprint", "method", "scientific_story"] as const) {
       expect(structuredWorksheets[code].fields).toHaveLength(5);
       expect(Object.keys(createEmptyStructuredContent(code))).toHaveLength(5);
       expect(Object.values(createEmptyStructuredContent(code))).toEqual(["", "", "", "", ""]);
@@ -22,6 +22,8 @@ describe("structured worksheet definitions and validation", () => {
     expect(isStructuredWorksheetCode("gap")).toBe(true);
     expect(isStructuredWorksheetCode("novelty")).toBe(true);
     expect(isStructuredWorksheetCode("blueprint")).toBe(true);
+    expect(isStructuredWorksheetCode("method")).toBe(true);
+    expect(isStructuredWorksheetCode("scientific_story")).toBe(true);
     expect(isStructuredWorksheetCode("problem")).toBe(false);
   });
 
@@ -52,5 +54,15 @@ describe("structured worksheet definitions and validation", () => {
     const novelty = createEmptyStructuredContent("novelty");
     novelty.novelty_statement = "x".repeat(1501);
     expect(saveStructuredWorksheetSchema.safeParse({ projectId, moduleCode: "novelty", content: novelty }).success).toBe(false);
+  });
+
+  it("enforces Method Fit and Scientific Story field limits", () => {
+    const method = createEmptyStructuredContent("method");
+    method.research_design = "x".repeat(1501);
+    expect(saveStructuredWorksheetSchema.safeParse({ projectId, moduleCode: "method", content: method }).success).toBe(false);
+
+    const story = createEmptyStructuredContent("scientific_story");
+    story.take_home_message = "x".repeat(1001);
+    expect(saveStructuredWorksheetSchema.safeParse({ projectId, moduleCode: "scientific_story", content: story }).success).toBe(false);
   });
 });

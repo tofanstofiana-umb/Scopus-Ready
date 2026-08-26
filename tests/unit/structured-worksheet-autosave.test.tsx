@@ -102,4 +102,31 @@ describe("structured worksheet autosave", () => {
       content: expect.objectContaining({ working_title: "Kerangka Artikel SCOPUS READY" }),
     }));
   });
+
+  it("saves Scientific Story through the same autosave boundary", async () => {
+    mockedSave.mockResolvedValue({
+      ok: true,
+      data: { updatedAt: "2026-08-26T03:00:00.000Z", completionPercent: 20, status: "in_progress" },
+    });
+    render(
+      <StructuredWorksheetForm
+        projectId={projectId}
+        moduleCode="scientific_story"
+        initialContent={createEmptyStructuredContent("scientific_story")}
+        initialUpdatedAt={null}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Apa pesan ilmiah utama manuskrip Anda?"), {
+      target: { value: "Pendampingan adaptif memperkuat keterlibatan." },
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(STRUCTURED_AUTOSAVE_DELAY_MS);
+    });
+
+    expect(mockedSave).toHaveBeenCalledWith(expect.objectContaining({
+      moduleCode: "scientific_story",
+      content: expect.objectContaining({ central_message: "Pendampingan adaptif memperkuat keterlibatan." }),
+    }));
+  });
 });
