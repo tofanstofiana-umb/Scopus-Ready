@@ -17,6 +17,8 @@ const activeWorksheets = [
   { code: "problem", title: "Problem Builder", description: "Susun masalah penelitian melalui lima pertanyaan terstruktur." },
   { code: "literature", title: "Literature Map", description: "Petakan temuan, teori, metode, konteks, dan keterbatasan studi terdahulu." },
   { code: "gap", title: "Gap Detector", description: "Rumuskan research gap yang spesifik dan didukung peta literatur." },
+  { code: "novelty", title: "Novelty Builder", description: "Bangun klaim kebaruan dan kontribusi yang didukung bukti literatur." },
+  { code: "blueprint", title: "Article Blueprint", description: "Susun struktur, argumen, dan rencana bukti untuk manuskrip Anda." },
 ];
 
 export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
@@ -45,7 +47,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
         </section>
         <section>
           <div className="mb-3"><h2 className="font-extrabold text-[#082B5C]">Worksheet Aktif</h2><p className="mt-1 text-sm text-slate-500">Kerjakan modul secara berurutan. Setiap jawaban tersimpan otomatis.</p></div>
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {activeWorksheets.map((worksheet, index) => (
               <article key={worksheet.code} className="section-card flex flex-col p-6">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Modul {index + 1}</span>

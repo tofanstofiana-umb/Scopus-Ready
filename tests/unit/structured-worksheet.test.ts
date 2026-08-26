@@ -10,7 +10,7 @@ const projectId = "2f29b16e-cd44-4a7e-9a84-a358902794e8";
 
 describe("structured worksheet definitions and validation", () => {
   it("provides exactly five empty fields for each active module", () => {
-    for (const code of ["literature", "gap"] as const) {
+    for (const code of ["literature", "gap", "novelty", "blueprint"] as const) {
       expect(structuredWorksheets[code].fields).toHaveLength(5);
       expect(Object.keys(createEmptyStructuredContent(code))).toHaveLength(5);
       expect(Object.values(createEmptyStructuredContent(code))).toEqual(["", "", "", "", ""]);
@@ -20,6 +20,8 @@ describe("structured worksheet definitions and validation", () => {
   it("accepts only the two supported module codes", () => {
     expect(isStructuredWorksheetCode("literature")).toBe(true);
     expect(isStructuredWorksheetCode("gap")).toBe(true);
+    expect(isStructuredWorksheetCode("novelty")).toBe(true);
+    expect(isStructuredWorksheetCode("blueprint")).toBe(true);
     expect(isStructuredWorksheetCode("problem")).toBe(false);
   });
 
@@ -40,5 +42,15 @@ describe("structured worksheet definitions and validation", () => {
     content.consequence = "x".repeat(2001);
     const result = saveStructuredWorksheetSchema.safeParse({ projectId, moduleCode: "gap", content });
     expect(result.success).toBe(false);
+  });
+
+  it("enforces the shorter title and novelty statement limits", () => {
+    const blueprint = createEmptyStructuredContent("blueprint");
+    blueprint.working_title = "x".repeat(501);
+    expect(saveStructuredWorksheetSchema.safeParse({ projectId, moduleCode: "blueprint", content: blueprint }).success).toBe(false);
+
+    const novelty = createEmptyStructuredContent("novelty");
+    novelty.novelty_statement = "x".repeat(1501);
+    expect(saveStructuredWorksheetSchema.safeParse({ projectId, moduleCode: "novelty", content: novelty }).success).toBe(false);
   });
 });

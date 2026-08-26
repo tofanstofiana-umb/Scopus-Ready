@@ -75,4 +75,31 @@ describe("structured worksheet autosave", () => {
     expect(screen.getByText("Koneksi ke server terputus. Perubahan belum tersimpan.")).toBeVisible();
     expect(screen.getByRole("button", { name: "Coba Lagi" })).toBeVisible();
   });
+
+  it("saves Article Blueprint with the shared autosave action", async () => {
+    mockedSave.mockResolvedValue({
+      ok: true,
+      data: { updatedAt: "2026-08-26T02:00:00.000Z", completionPercent: 20, status: "in_progress" },
+    });
+    render(
+      <StructuredWorksheetForm
+        projectId={projectId}
+        moduleCode="blueprint"
+        initialContent={createEmptyStructuredContent("blueprint")}
+        initialUpdatedAt={null}
+      />,
+    );
+
+    const titleField = screen.getByLabelText("Apa judul kerja manuskrip Anda?");
+    expect(titleField).toHaveAttribute("maxlength", "500");
+    fireEvent.change(titleField, { target: { value: "Kerangka Artikel SCOPUS READY" } });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(STRUCTURED_AUTOSAVE_DELAY_MS);
+    });
+
+    expect(mockedSave).toHaveBeenCalledWith(expect.objectContaining({
+      moduleCode: "blueprint",
+      content: expect.objectContaining({ working_title: "Kerangka Artikel SCOPUS READY" }),
+    }));
+  });
 });

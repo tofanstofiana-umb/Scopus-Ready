@@ -57,7 +57,7 @@ async function createTemporaryParticipant() {
 async function saveWorksheet(
   client: SupabaseClient,
   projectId: string,
-  moduleCode: "literature" | "gap",
+  moduleCode: "literature" | "gap" | "novelty" | "blueprint",
   content: Record<string, string>,
   updatedAt: string | null,
 ) {
@@ -184,5 +184,89 @@ describe.skipIf(!configured)("Literature Map and Gap Detector persistence and RL
       outsider, project!.id, "gap", gap, gapSave!.updated_at,
     );
     expect(outsiderWriteError?.message).toContain("ACCESS_DENIED");
+  });
+
+  it("persists Novelty Builder and Article Blueprint with exact server validation", async () => {
+    const { client: owner, user: ownerUser } = await signIn(participantEmail!, participantPassword!);
+    const { data: membership, error: membershipError } = await owner
+      .from("class_members")
+      .select("class_id")
+      .eq("user_id", ownerUser.id)
+      .eq("member_role", "participant")
+      .single();
+    expect(membershipError).toBeNull();
+
+    const { data: project, error: projectError } = await owner
+      .from("projects")
+      .insert({
+        owner_id: ownerUser.id,
+        class_id: membership!.class_id,
+        title: `Sprint 11 Integration ${crypto.randomUUID()}`,
+        research_stage: "proposal",
+        status: "active",
+      })
+      .select("id")
+      .single();
+    expect(projectError).toBeNull();
+    createdProjectIds.push(project!.id);
+
+    const novelty = {
+      gap_basis: "Konteks institusi kecil belum teruji secara longitudinal.",
+      difference: "Penelitian menggunakan desain longitudinal dan konteks berbeda.",
+      new_contribution: "Model keterlibatan adaptif pada institusi kecil.",
+      originality_evidence: "Pemetaan literatur tidak menemukan kombinasi tersebut.",
+      novelty_statement: "Studi ini menawarkan model longitudinal yang kontekstual.",
+    };
+    const blueprint = {
+      working_title: "Model Keterlibatan Adaptif pada Institusi Kecil",
+      research_objective: "Menguji perubahan keterlibatan mahasiswa secara longitudinal.",
+      article_structure: "Pendahuluan, metode, hasil, pembahasan, dan kesimpulan.",
+      key_argument: "Pendampingan adaptif meningkatkan keterlibatan secara berkelanjutan.",
+      evidence_plan: "Data tiga gelombang, model pertumbuhan, dan triangulasi wawancara.",
+    };
+
+    const { data: noveltySave, error: noveltyError } = await saveWorksheet(
+      owner, project!.id, "novelty", novelty, null,
+    );
+    expect(noveltyError).toBeNull();
+    expect(noveltySave?.completion_percent).toBe(100);
+
+    const { data: blueprintSave, error: blueprintError } = await saveWorksheet(
+      owner, project!.id, "blueprint", blueprint, null,
+    );
+    expect(blueprintError).toBeNull();
+    expect(blueprintSave?.content).toEqual(blueprint);
+
+    const { error: titleLimitError } = await saveWorksheet(
+      owner,
+      project!.id,
+      "blueprint",
+      { ...blueprint, working_title: "x".repeat(501) },
+      blueprintSave!.updated_at,
+    );
+    expect(titleLimitError?.message).toContain("INVALID_CONTENT");
+    await owner.auth.signOut();
+
+    const { client: restoredOwner } = await signIn(participantEmail!, participantPassword!);
+    const { data: restored, error: restoreError } = await restoredOwner
+      .from("worksheet_answers")
+      .select("id,content")
+      .in("id", [noveltySave!.id, blueprintSave!.id]);
+    expect(restoreError).toBeNull();
+    expect(restored).toHaveLength(2);
+    expect(restored?.some((answer) => answer.content.novelty_statement === novelty.novelty_statement)).toBe(true);
+    expect(restored?.some((answer) => answer.content.working_title === blueprint.working_title)).toBe(true);
+
+    const { client: trainer } = await signIn(trainerEmail!, trainerPassword!);
+    const { data: trainerRead, error: trainerReadError } = await trainer
+      .from("worksheet_answers")
+      .select("id")
+      .in("id", [noveltySave!.id, blueprintSave!.id]);
+    expect(trainerReadError).toBeNull();
+    expect(trainerRead).toHaveLength(2);
+    const { error: trainerWriteError } = await saveWorksheet(
+      trainer, project!.id, "novelty", novelty, noveltySave!.updated_at,
+    );
+    expect(trainerWriteError?.message).toContain("ACCESS_DENIED");
   });
 });
