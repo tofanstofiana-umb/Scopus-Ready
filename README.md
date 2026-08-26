@@ -14,6 +14,10 @@ Checkpoint Sprint 6 menjadikan worksheet status dan assessment sebagai satu-satu
 
 Checkpoint Sprint 7 memperkeras MVP dengan error boundary, respons session-expired yang konsisten, pencocokan route per segmen, validasi identifier pada data access layer, constraint database untuk proyek dan rubrik, penutupan direct write assessment, serta tes otomatis akses lintas akun dan kegagalan autosave.
 
+Checkpoint Sprint 8 menambahkan Journal Target Matrix, Action Plan, dan laporan proyek yang tetap membaca data proyek serta metrics yang sama.
+
+Checkpoint Sprint 9 membuka rubrik penilaian trainer melalui RPC atomik tervalidasi, mempertahankan penolakan direct write, menghitung enam Critical Gates, dan menerbitkan status kesiapan yang sama pada trainer, dashboard peserta, halaman Score, serta laporan.
+
 ## Setup Supabase Local
 
 Prasyarat: Node.js 22, Docker Desktop aktif, dan ruang disk kosong yang cukup untuk image Supabase.
@@ -127,7 +131,14 @@ Tanpa environment Supabase, route yang dilindungi ditutup dan pengguna diarahkan
 4. Jika sesi berakhir ketika autosave berjalan, aplikasi menampilkan **Login Kembali**, bukan mengulang permintaan tanpa sesi.
 5. URL proyek atau kelas yang tidak valid menampilkan halaman data tidak ditemukan tanpa membocorkan detail database.
 
-Assessment pada MVP 0.1 bersifat read-only. Penulisan nilai baru akan dibuka melalui RPC tervalidasi bersama UI rubrik pada MVP 0.2.
+## Mencoba Sprint 9
+
+1. Login sebagai trainer dan buka **Dashboard Trainer → Buka Kelas → Detail Peserta → Buka Problem Builder**.
+2. Pada bagian **Rubrik SCOPUS READY**, isi satu atau beberapa dimensi dan catatan, lalu klik **Simpan Penilaian Resmi**.
+3. Login sebagai peserta dan buka **SCOPUS READY Score**. Breakdown, Critical Gates, dan status kesiapan membaca assessment yang baru disimpan.
+4. Score 100 poin baru diterbitkan setelah seluruh 10 dimensi valid. Critical Gates tetap membedakan kelengkapan penilaian dari kesiapan submit.
+
+Ambang resmi: Problem `6/8`, Research Gap `8/12`, Novelty `8/12`, Method `8/12`, Journal Fit `6/8`, dan Reviewer Gate lulus setelah Internal Review selesai.
 
 ## Quality gates
 
@@ -162,11 +173,12 @@ Jalankan `npm run test:e2e`. Perintah ini melakukan build produksi, menyalakan s
 - Pemilihan kelas proyek diperiksa ulang pada Data Access Layer dan PostgreSQL RLS.
 - RPC Problem Builder hanya menerima lima field yang diizinkan, membatasi panjang jawaban, memeriksa kepemilikan proyek, dan menolak penyimpanan versi lama.
 - Penulisan feedback hanya melalui RPC tervalidasi yang memeriksa role trainer, kelas, proyek, dan worksheet sebagai satu hubungan.
+- Penulisan assessment hanya melalui batch RPC atomik; RPC menetapkan maksimum rubrik di database dan memastikan trainer memang menangani kelas proyek tersebut.
 - Progres dihitung dari status seluruh modul; score dihitung dari assessment rubrik lengkap dan tidak dapat diedit sebagai angka dashboard.
 - `SUPABASE_SERVICE_ROLE_KEY` tidak digunakan oleh runtime client.
 - Score penuh tidak ditampilkan sampai rubrik lengkap tersedia.
 - Pencocokan proteksi route menggunakan batas segmen URL sehingga nama path yang mirip tidak salah diklasifikasikan.
-- Direct write assessment ditutup sampai RPC penilaian tervalidasi tersedia pada MVP 0.2.
+- Direct insert/update/delete assessment tetap ditutup; perubahan nilai hanya diizinkan melalui RPC Sprint 9.
 
 ## Struktur MVP
 

@@ -2,6 +2,12 @@ import "server-only";
 
 import { calculateProjectProgress } from "@/domain/progress/progress";
 import { calculateScopusReadyScore, type ScopusReadyScore } from "@/domain/scoring/score";
+import {
+  determineReadinessStatus,
+  evaluateCriticalGates,
+  type CriticalGateResult,
+  type ReadinessResult,
+} from "@/domain/scoring/gates";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { projectIdSchema } from "@/validation/project.schema";
 import type { WorksheetStatus } from "@/types/worksheet";
@@ -19,6 +25,8 @@ export interface ProjectMetrics {
   progress: number;
   modules: ProjectModuleMetric[];
   score: ScopusReadyScore;
+  gates: CriticalGateResult[];
+  readiness: ReadinessResult;
 }
 
 export async function getProjectsMetrics(projectIds: string[]): Promise<Map<string, ProjectMetrics>> {
@@ -59,10 +67,17 @@ export async function getProjectsMetrics(projectIds: string[]): Promise<Map<stri
         });
       }
     }
+    const score = calculateScopusReadyScore([...latestAssessments.values()]);
+    const gates = evaluateCriticalGates(
+      score,
+      projectModules.some((module) => module.code === "internal_review" && module.status === "completed"),
+    );
     metrics.set(projectId, {
       progress: calculateProjectProgress(projectModules),
       modules: projectModules,
-      score: calculateScopusReadyScore([...latestAssessments.values()]),
+      score,
+      gates,
+      readiness: determineReadinessStatus(score, gates),
     });
   }
 

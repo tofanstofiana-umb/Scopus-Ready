@@ -5,6 +5,12 @@ import type { Profile } from "@/types/auth";
 import type { Project } from "@/types/project";
 import type { ProjectMetrics } from "@/services/progress.service";
 
+const gateClasses = {
+  pass: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  fail: "border-red-200 bg-red-50 text-red-700",
+  pending: "border-slate-200 bg-slate-50 text-slate-500",
+};
+
 export function ProjectScore({
   profile,
   projects,
@@ -40,7 +46,7 @@ export function ProjectScore({
                 <div className="grid h-40 w-40 place-items-center rounded-full border-[10px] border-white/15 bg-[#082B5C] text-center">
                   <div><div className="text-4xl font-black text-white">{score.score ?? "—"}</div><div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/55">dari 100</div></div>
                 </div>
-                <div><span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase text-[#F4BF4F]">{selected.project.title}</span><h2 className="mt-4 text-2xl font-extrabold text-white">{score.complete ? "Assessment rubrik lengkap" : "Score belum dapat diterbitkan"}</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-white/70">{score.complete ? "Nilai ini dihitung dari sepuluh dimensi rubrik yang tersimpan di database." : `Baru ${score.assessedDimensions} dari ${score.totalDimensions} dimensi yang memiliki assessment valid. Aplikasi tidak menebak atau mengisi angka yang belum dinilai.`}</p></div>
+                <div><div className="flex flex-wrap gap-2"><span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase text-[#F4BF4F]">{selected.project.title}</span><span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[10px] font-bold text-white">{selected.metrics.readiness.label}</span></div><h2 className="mt-4 text-2xl font-extrabold text-white">{score.complete ? "Assessment rubrik lengkap" : "Score belum dapat diterbitkan"}</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-white/70">{score.complete ? selected.metrics.readiness.explanation : `Baru ${score.assessedDimensions} dari ${score.totalDimensions} dimensi yang memiliki assessment valid. Aplikasi tidak menebak atau mengisi angka yang belum dinilai.`}</p></div>
               </div>
             </section>
 
@@ -52,6 +58,13 @@ export function ProjectScore({
                 {score.breakdown.map((item) => (
                   <div key={item.dimension} className="grid grid-cols-[minmax(120px,1fr)_minmax(100px,1fr)_90px] items-center gap-3 py-4"><span className="text-sm font-bold text-slate-700">{item.label}</span><div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#0B4EA2]" style={{ width: item.score === null ? "0%" : `${(item.score / item.maxScore) * 100}%` }} /></div><span className="text-right text-xs font-black text-[#082B5C]">{item.score === null ? "Belum dinilai" : `${item.score}/${item.maxScore}`}</span></div>
                 ))}
+              </div>
+            </section>
+
+            <section className="section-card">
+              <div className="section-card-header"><div><h2 className="font-extrabold text-[#082B5C]">Critical Gates</h2><p className="mt-1 text-xs text-slate-500">Gate kualitas wajib lulus sebelum manuskrip dinyatakan siap submit.</p></div><span className="badge bg-amber-50 text-amber-700">{selected.metrics.readiness.label}</span></div>
+              <div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-3">
+                {selected.metrics.gates.map((gate) => <article key={gate.id} className={`rounded-xl border p-4 ${gateClasses[gate.status]}`}><div className="flex items-center justify-between gap-3"><h3 className="text-sm font-extrabold">{gate.label}</h3><span className="text-[10px] font-black uppercase">{gate.status}</span></div><p className="mt-2 text-xs leading-5 opacity-80">{gate.explanation}</p>{gate.maxScore !== null && <div className="mt-3 text-xs font-bold">{gate.score === null ? "Belum dinilai" : `${gate.score}/${gate.maxScore}`} · Ambang {gate.threshold}</div>}</article>)}
               </div>
             </section>
 

@@ -11,6 +11,12 @@ export const SCOPUS_READY_RUBRIC = [
   { dimension: "language_technical", label: "Bahasa & Teknis", maxScore: 6 },
 ] as const;
 
+export type RubricDimension = (typeof SCOPUS_READY_RUBRIC)[number]["dimension"];
+
+export function getRubricDefinition(dimension: string) {
+  return SCOPUS_READY_RUBRIC.find((item) => item.dimension === dimension) ?? null;
+}
+
 export interface AssessmentInput {
   dimension: string;
   score: number;

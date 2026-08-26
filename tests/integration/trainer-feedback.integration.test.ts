@@ -134,6 +134,61 @@ describe.skipIf(!configured)("Trainer feedback persistence and RLS", () => {
     });
     expect(mismatchedAssessmentError).not.toBeNull();
 
+    const officialAssessments = [
+      { dimension: "problem", score: 7, notes: "Masalah jelas dan dapat diteliti." },
+      { dimension: "research_gap", score: 9, notes: "Gap didukung literatur." },
+      { dimension: "novelty", score: 9, notes: "Novelty cukup kuat." },
+      { dimension: "contribution", score: 8, notes: "Kontribusi relevan." },
+      { dimension: "theory_literature", score: 8, notes: "Landasan teori memadai." },
+      { dimension: "method", score: 9, notes: "Metode selaras." },
+      { dimension: "evidence", score: 8, notes: "Bukti cukup." },
+      { dimension: "discussion", score: 9, notes: "Pembahasan terarah." },
+      { dimension: "journal_fit", score: 7, notes: "Target jurnal sesuai." },
+      { dimension: "language_technical", score: 5, notes: "Bahasa baik." },
+    ];
+    const { data: savedAssessments, error: assessmentRpcError } = await assignedTrainer.rpc("save_project_assessments", {
+      target_project_id: primary.project.id,
+      target_worksheet_answer_id: primary.answer.id,
+      target_assessments: officialAssessments,
+    });
+    expect(assessmentRpcError).toBeNull();
+    expect(savedAssessments).toHaveLength(10);
+
+    const { data: participantAssessments, error: participantAssessmentsError } = await owner
+      .from("assessments")
+      .select("dimension,score,max_score,notes")
+      .eq("project_id", primary.project.id);
+    expect(participantAssessmentsError).toBeNull();
+    expect(participantAssessments).toHaveLength(10);
+
+    const { error: participantAssessmentWriteError } = await owner.rpc("save_project_assessments", {
+      target_project_id: primary.project.id,
+      target_worksheet_answer_id: primary.answer.id,
+      target_assessments: [{ dimension: "problem", score: 8 }],
+    });
+    expect(participantAssessmentWriteError?.message).toContain("ACCESS_DENIED");
+
+    const { error: invalidAssessmentScoreError } = await assignedTrainer.rpc("save_project_assessments", {
+      target_project_id: primary.project.id,
+      target_worksheet_answer_id: primary.answer.id,
+      target_assessments: [{ dimension: "problem", score: 9 }],
+    });
+    expect(invalidAssessmentScoreError?.message).toContain("INVALID_ASSESSMENT_SCORE");
+
+    const { error: mismatchedAssessmentTargetError } = await assignedTrainer.rpc("save_project_assessments", {
+      target_project_id: primary.project.id,
+      target_worksheet_answer_id: secondary.answer.id,
+      target_assessments: [{ dimension: "problem", score: 8 }],
+    });
+    expect(mismatchedAssessmentTargetError?.message).toContain("INVALID_ASSESSMENT_TARGET");
+
+    const { error: directAssessmentUpdateError } = await assignedTrainer
+      .from("assessments")
+      .update({ score: 0 })
+      .eq("project_id", primary.project.id)
+      .eq("dimension", "problem");
+    expect(directAssessmentUpdateError).not.toBeNull();
+
     const { error: directInsertError } = await assignedTrainer.from("feedback").insert({
       project_id: primary.project.id,
       worksheet_answer_id: primary.answer.id,
@@ -164,6 +219,12 @@ describe.skipIf(!configured)("Trainer feedback persistence and RLS", () => {
 
     const outsiderCredentials = await createTemporaryTrainer();
     const { client: outsider } = await signIn(outsiderCredentials.email, outsiderCredentials.password);
+    const { error: outsiderAssessmentError } = await outsider.rpc("save_project_assessments", {
+      target_project_id: primary.project.id,
+      target_worksheet_answer_id: primary.answer.id,
+      target_assessments: [{ dimension: "problem", score: 8 }],
+    });
+    expect(outsiderAssessmentError?.message).toContain("INVALID_ASSESSMENT_TARGET");
     const { error: outsiderError } = await outsider.rpc("create_trainer_feedback", {
       target_project_id: primary.project.id,
       target_worksheet_answer_id: primary.answer.id,

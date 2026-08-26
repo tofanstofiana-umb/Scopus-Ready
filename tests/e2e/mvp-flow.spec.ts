@@ -241,6 +241,22 @@ test("trainer reviews Problem Builder and participant addresses persistent feedb
     await expect(page.getByText(comment)).toBeVisible();
     await expect(page.getByText("Progres 6.3%", { exact: true })).toBeVisible();
 
+    const rubricScores = [
+      ["Masalah", "8"], ["Research Gap", "12"], ["Novelty", "12"], ["Kontribusi", "10"],
+      ["Teori & Literatur", "10"], ["Metode", "12"], ["Hasil & Bukti", "10"],
+      ["Pembahasan", "12"], ["Journal Fit", "8"], ["Bahasa & Teknis", "6"],
+    ] as const;
+    for (const [label, value] of rubricScores) {
+      await page.getByLabel(`Nilai ${label}`).selectOption(value);
+    }
+    await page.getByRole("button", { name: "Simpan Penilaian Resmi" }).click();
+    await expect(page.getByText("10 dimensi penilaian berhasil disimpan.")).toBeVisible();
+    await expect(page.getByText("Score 100", { exact: true })).toBeVisible();
+    await expect.poll(async () => {
+      const { count } = await service.from("assessments").select("id", { count: "exact", head: true }).eq("project_id", createdProjectId!);
+      return count;
+    }).toBe(10);
+
     await expect.poll(async () => {
       const { data } = await service
         .from("worksheet_answers")
@@ -256,7 +272,9 @@ test("trainer reviews Problem Builder and participant addresses persistent feedb
     await expect(page.getByText("Status Problem Builder: Perlu Revisi")).toBeVisible();
     await expect(page.getByText(comment)).toBeVisible();
     await page.goto(`/score?projectId=${createdProjectId}`);
-    await expect(page.getByText("Score belum dapat diterbitkan")).toBeVisible();
+    await expect(page.getByText("Assessment rubrik lengkap")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Critical Gates" })).toBeVisible();
+    await expect(page.getByText("Reviewer Gate")).toBeVisible();
     await expect(page.getByText("Progres 6.3% mengukur penyelesaian modul.")).toBeVisible();
     await page.goto(`/projects/${createdProjectId}/workbook/problem`);
     await page.getByLabel("Apa topik penelitian Anda?").fill(revisedTopic);

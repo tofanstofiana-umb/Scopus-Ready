@@ -34,6 +34,8 @@ export async function getProjectReport(projectId: string): Promise<ProjectReport
     score: metrics.score.score,
     scoreCompletedDimensions: metrics.score.assessedDimensions,
     scoreTotalDimensions: metrics.score.totalDimensions,
+    gates: metrics.gates,
+    readiness: metrics.readiness,
     problemBuilder: problemBuilder
       ? {
           content: problemBuilder.content,

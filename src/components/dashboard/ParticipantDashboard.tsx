@@ -63,6 +63,7 @@ export function ParticipantDashboard({
               <div className="section-card flex flex-col p-5 sm:p-6">
                 <div className="flex items-start justify-between gap-4"><div><p className="text-[10px] font-extrabold uppercase tracking-wider text-[#0B4EA2]">Penilaian Kesiapan</p><h2 className="mt-2 text-lg font-extrabold text-[#082B5C]">SCOPUS READY Score</h2></div><Target size={22} className="text-[#D9A441]" /></div>
                 <div className="my-5 text-4xl font-black text-[#082B5C]">{active.metrics.score.score === null ? "—" : active.metrics.score.score}</div>
+                <span className="badge mb-3 bg-amber-50 text-amber-700">{active.metrics.readiness.label}</span>
                 <div className="mb-5 rounded-xl border border-blue-100 bg-blue-50 p-3 text-xs leading-5 text-blue-800">
                   {active.metrics.score.complete
                     ? "Rubrik lengkap. Score dihitung dari assessment trainer."

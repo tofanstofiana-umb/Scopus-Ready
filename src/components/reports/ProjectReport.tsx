@@ -32,6 +32,11 @@ export function ProjectReport({ report }: { report: ProjectReportData }) {
         </section>
 
         <section>
+          <div className="flex items-center justify-between gap-4 border-b border-slate-200 pb-2"><h3 className="font-extrabold text-[#082B5C]">Critical Gates</h3><span className="text-xs font-extrabold text-[#0B4EA2]">{report.readiness.label}</span></div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{report.gates.map((gate) => <div key={gate.id} className="rounded-lg border border-slate-200 p-3"><div className="flex justify-between gap-2 text-xs font-bold text-[#082B5C]"><span>{gate.label}</span><span>{gate.status.toUpperCase()}</span></div><p className="mt-1 text-[10px] text-slate-500">{gate.explanation}</p></div>)}</div>
+        </section>
+
+        <section>
           <h3 className="border-b border-slate-200 pb-2 font-extrabold text-[#082B5C]">Problem Builder</h3>
           {!report.problemBuilder ? <p className="mt-4 text-sm text-slate-500">Problem Builder belum diisi.</p> : <div className="mt-4 space-y-4">{Object.entries(problemLabels).map(([key, label]) => <div key={key}><div className="text-xs font-bold text-slate-500">{label}</div><p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">{report.problemBuilder?.content[key as keyof typeof problemLabels] || "—"}</p></div>)}</div>}
         </section>
