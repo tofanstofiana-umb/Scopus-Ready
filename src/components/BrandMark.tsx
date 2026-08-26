@@ -7,15 +7,17 @@ interface BrandMarkProps {
 
 export function BrandMark({ compact = false, inverse = false }: BrandMarkProps) {
   return (
-    <div className="brand-lockup" aria-label="SCOPUS READY Digital Workbook oleh Publish-Lab">
-      <div className="brand-symbol" aria-hidden="true">
-        <Image
-          src="/brand/publish-lab-logo.jpeg"
-          alt=""
-          width={503}
-          height={377}
-          className="brand-symbol-image"
-        />
+    <div className={`brand-lockup ${compact ? "brand-lockup--compact" : ""}`} aria-label="SCOPUS READY Digital Workbook oleh Publish-Lab">
+      <div className={`brand-symbol ${inverse ? "brand-symbol--inverse" : ""} ${compact ? "brand-symbol--compact" : ""}`} aria-hidden="true">
+        <div className="brand-symbol-viewport">
+          <Image
+            src="/brand/publish-lab-logo.jpeg"
+            alt=""
+            width={503}
+            height={377}
+            className="brand-symbol-image"
+          />
+        </div>
       </div>
       {!compact && (
         <div className="min-w-0">
