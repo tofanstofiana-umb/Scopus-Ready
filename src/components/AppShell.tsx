@@ -21,16 +21,16 @@ export function AppShell({ children, role = "peserta", title, subtitle, actions,
   const roleInitial = displayName.charAt(0).toUpperCase();
 
   return (
-    <div className="app-canvas min-h-screen flex">
+    <div className="app-canvas min-h-screen flex print:block print:bg-white">
       {/* Sidebar (desktop) */}
-      <div className="hidden lg:block flex-shrink-0">
+      <div className="hidden flex-shrink-0 lg:block print:hidden">
         <Sidebar role={role} userName={displayName} userInstitution={userInstitution || roleLabel} progress={progress} />
       </div>
 
       {/* Main content */}
       <div className="flex-1 min-w-0 min-h-screen flex flex-col">
         {/* TopBar */}
-        <header className="app-topbar sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+        <header className="app-topbar sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 lg:px-8 print:hidden">
           <div className="flex min-w-0 items-center gap-3">
             <div className="lg:hidden">
               <BrandMark compact />
@@ -78,13 +78,13 @@ export function AppShell({ children, role = "peserta", title, subtitle, actions,
         </header>
 
         {/* Page content */}
-        <main className="app-main flex-1 px-4 py-5 pb-24 sm:px-6 lg:px-8 lg:py-6 lg:pb-8">
+        <main className="app-main flex-1 px-4 py-5 pb-24 sm:px-6 lg:px-8 lg:py-6 lg:pb-8 print:bg-white print:p-0">
           <div className="mx-auto w-full max-w-[1440px]">{children}</div>
         </main>
       </div>
 
       {/* Bottom nav (mobile) */}
-      <div className="lg:hidden">
+      <div className="lg:hidden print:hidden">
         <BottomNav role={role} />
       </div>
     </div>

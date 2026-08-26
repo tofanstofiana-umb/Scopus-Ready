@@ -291,3 +291,75 @@ test("trainer reviews Problem Builder and participant addresses persistent feedb
     if (createdProjectId) await service.from("projects").delete().eq("id", createdProjectId);
   }
 });
+
+test("participant manages Sprint 8 planning data and exports a report", async ({ page }, testInfo) => {
+  const participant = accounts.participant;
+  const serviceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  test.skip(
+    !participant.email || !participant.password || !serviceUrl || !serviceRoleKey,
+    "Set participant and local Supabase service credentials first",
+  );
+
+  const service = createClient(serviceUrl!, serviceRoleKey!, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  let createdProjectId: string | undefined;
+  const title = `Sprint 8 E2E ${testInfo.project.name} ${Date.now()}`;
+  const journalName = `Journal Target ${testInfo.project.name}`;
+  const taskTitle = `Adaptasi panduan penulis ${testInfo.project.name}`;
+
+  try {
+    await login(page, participant);
+    await page.goto("/projects/new");
+    await page.getByLabel("Judul manuskrip").fill(title);
+    await page.getByLabel("Bidang penelitian").fill("Pendidikan Digital");
+    await page.getByRole("button", { name: /^Buat Proyek$/ }).click();
+    await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}$/);
+    createdProjectId = page.url().split("/").at(-1);
+
+    await page.goto(`/journals?projectId=${createdProjectId}`);
+    await expect(page.getByRole("heading", { name: "Journal Target Matrix" })).toBeVisible();
+    await page.getByLabel("Nama jurnal").fill(journalName);
+    await page.getByLabel("Penerbit").fill("SCOPUS READY Press");
+    await page.getByLabel("Alamat website").fill("https://example.test/journal");
+    await page.getByLabel("Quartile").selectOption("q1");
+    await page.getByLabel("Status target").selectOption("primary");
+    await page.getByLabel("Kesesuaian scope").selectOption("5");
+    await page.getByLabel("Kesesuaian jenis artikel").selectOption("4");
+    await page.getByLabel("Kesesuaian audiens").selectOption("4");
+    await page.getByLabel("Kesesuaian persyaratan").selectOption("3");
+    await page.getByRole("button", { name: "Tambah Jurnal" }).click();
+    await expect(page.getByText("Target jurnal ditambahkan.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: journalName })).toBeVisible();
+    await expect(page.getByText("80%")).toBeVisible();
+
+    await page.goto(`/action-plan?projectId=${createdProjectId}`);
+    await expect(page.getByRole("heading", { name: "Action Plan" })).toBeVisible();
+    await page.getByLabel("Tugas berikutnya").fill(taskTitle);
+    await page.getByLabel("Deskripsi").fill("Sesuaikan struktur dan batas kata manuskrip.");
+    await page.getByLabel("Tanggal target").fill("2026-09-15");
+    await page.getByLabel("Prioritas").selectOption("high");
+    await page.getByRole("button", { name: "Tambah Tugas" }).click();
+    await expect(page.getByText("Tugas berhasil ditambahkan.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: taskTitle })).toBeVisible();
+    await page.getByRole("button", { name: "Mulai" }).click();
+    await expect(page.getByText("Sedang dikerjakan", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Tandai Selesai" }).click();
+    await expect(page.getByText("Selesai", { exact: true })).toBeVisible();
+
+    await page.goto(`/manuscript?projectId=${createdProjectId}`);
+    await expect(page.getByRole("heading", { name: "Laporan Manuskrip" })).toBeVisible();
+    await expect(page.getByRole("article").getByText(title)).toBeVisible();
+    await expect(page.getByText(journalName)).toBeVisible();
+    await expect(page.getByText(taskTitle)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Cetak / Simpan PDF" })).toBeVisible();
+
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Unduh Data JSON" }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe(`scopus-ready-${createdProjectId}.json`);
+  } finally {
+    if (createdProjectId) await service.from("projects").delete().eq("id", createdProjectId);
+  }
+});

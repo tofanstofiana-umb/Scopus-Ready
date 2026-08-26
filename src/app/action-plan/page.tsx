@@ -1,146 +1,42 @@
-"use client";
-import { useState } from "react";
+import Link from "next/link";
+import { CalendarDays, CheckCircle2, Clock3, ListTodo } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { actionPlanTasks } from "@/lib/mockData";
-import { CheckCircle2, Circle, Clock, Target, Calendar, ChevronRight } from "lucide-react";
+import { ActionTaskCard } from "@/components/action-plan/ActionTaskCard";
+import { ActionTaskForm } from "@/components/action-plan/ActionTaskForm";
+import { ProjectSwitcher } from "@/components/projects/ProjectSwitcher";
+import { calculateActionPlanProgress } from "@/domain/action-plan/progress";
+import { getActionTasks } from "@/services/action-plan.service";
+import { requirePageIdentity } from "@/services/page-auth.service";
+import { getUserProjects } from "@/services/project.service";
 
-type TaskStatus = "done" | "inprogress" | "todo";
-
-const statusConfig: Record<TaskStatus, { color: string; bg: string; label: string; icon: typeof CheckCircle2 }> = {
-  done: { color: "#10B981", bg: "rgba(16,185,129,0.08)", label: "Selesai", icon: CheckCircle2 },
-  inprogress: { color: "#0B4EA2", bg: "rgba(11,78,162,0.06)", label: "Sedang Dikerjakan", icon: Clock },
-  todo: { color: "#9CA3AF", bg: "rgba(156,163,175,0.06)", label: "Belum Mulai", icon: Circle },
-};
-
-const weekLabels = ["Minggu 1", "Minggu 2", "Minggu 3", "Minggu 4"];
-const weekThemes = [
-  "Masalah, Gap, dan Novelty",
-  "Metode, Hasil, dan Pembahasan",
-  "Journal Fit dan Adaptasi",
-  "Review dan Submission",
-];
-
-export default function ActionPlanPage() {
-  const [tasks, setTasks] = useState(actionPlanTasks);
-  const done = tasks.filter(t => t.status === "done").length;
-  const pct = Math.round((done / tasks.length) * 100);
-
-  const cycleStatus = (id: string) => {
-    setTasks(prev => prev.map(t => {
-      if (t.id !== id) return t;
-      const next: TaskStatus = t.status === "todo" ? "inprogress" : t.status === "inprogress" ? "done" : "todo";
-      return { ...t, status: next };
-    }));
-  };
+export default async function ActionPlanPage({ searchParams }: { searchParams: Promise<{ projectId?: string }> }) {
+  const identity = await requirePageIdentity(["participant"]);
+  const [{ projectId }, projects] = await Promise.all([searchParams, getUserProjects()]);
+  const selected = projects.find((project) => project.id === projectId) ?? projects[0] ?? null;
+  const tasks = selected ? await getActionTasks(selected.id) : [];
+  const completedCount = tasks.filter((task) => task.status === "completed").length;
+  const inProgressCount = tasks.filter((task) => task.status === "in_progress").length;
+  const progress = calculateActionPlanProgress(tasks.map((task) => task.status));
 
   return (
-    <AppShell title="Action Plan" subtitle="30-Day Publication Roadmap">
-      <div className="space-y-6 animate-fade-in">
-
-        {/* Header */}
-        <div className="rounded-2xl p-6 text-white"
-          style={{ background: "linear-gradient(135deg, #082B5C, #0B4EA2)" }}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-xl font-black">30-Day Action Plan</h2>
-              <p className="text-white/60 text-sm mt-1">Rencana kerja terstruktur menuju submission</p>
+    <AppShell title="Action Plan" subtitle="Ubah feedback dan prioritas menjadi tugas yang dapat dituntaskan" userName={identity.profile.full_name} userInstitution={identity.profile.institution}>
+      <div className="mx-auto max-w-6xl space-y-6">
+        {projects.length === 0 ? (
+          <div className="section-card p-10 text-center"><ListTodo className="mx-auto text-slate-300" size={42} /><h2 className="mt-4 font-extrabold text-[#082B5C]">Belum Ada Proyek</h2><p className="mt-2 text-sm text-slate-500">Buat proyek sebelum menyusun rencana tindakan.</p><Link href="/projects/new" className="btn-primary mt-5">Buat Proyek</Link></div>
+        ) : selected && (
+          <>
+            <ProjectSwitcher projects={projects} selectedProjectId={selected.id} pathname="/action-plan" />
+            <section className="grid gap-4 sm:grid-cols-3">
+              <div className="section-card flex items-center gap-4 p-5"><div className="grid h-11 w-11 place-items-center rounded-xl bg-blue-50 text-blue-700"><CalendarDays size={20} /></div><div><div className="text-2xl font-extrabold text-[#082B5C]">{tasks.length}</div><div className="text-xs text-slate-500">Total tugas</div></div></div>
+              <div className="section-card flex items-center gap-4 p-5"><div className="grid h-11 w-11 place-items-center rounded-xl bg-amber-50 text-amber-700"><Clock3 size={20} /></div><div><div className="text-2xl font-extrabold text-[#082B5C]">{inProgressCount}</div><div className="text-xs text-slate-500">Sedang dikerjakan</div></div></div>
+              <div className="section-card flex items-center gap-4 p-5"><div className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><CheckCircle2 size={20} /></div><div><div className="text-2xl font-extrabold text-[#082B5C]">{progress}%</div><div className="text-xs text-slate-500">{completedCount} tugas selesai</div></div></div>
+            </section>
+            <div className="grid items-start gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+              <section className="section-card p-5 lg:sticky lg:top-24"><p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#0B4EA2]">{selected.title}</p><h2 className="mb-5 mt-1 text-lg font-extrabold text-[#082B5C]">Tambah Tugas</h2><ActionTaskForm projectId={selected.id} /></section>
+              <section className="space-y-4"><div><h2 className="text-lg font-extrabold text-[#082B5C]">Daftar Tindakan</h2><p className="text-xs text-slate-500">Status tugas disimpan dan ikut masuk ke laporan proyek.</p></div>{tasks.length === 0 ? <div className="section-card p-10 text-center text-sm text-slate-500">Belum ada tugas untuk proyek ini.</div> : tasks.map((task) => <ActionTaskCard key={task.id} task={task} />)}</section>
             </div>
-            <div className="text-right">
-              <div className="text-3xl font-black" style={{ color: "#D9A441" }}>{done}/{tasks.length}</div>
-              <div className="text-white/50 text-xs">Tugas Selesai</div>
-            </div>
-          </div>
-          <div className="progress-bar" style={{ height: "8px" }}>
-            <div className="progress-fill" style={{ width: `${pct}%` }} />
-          </div>
-          <div className="text-xs text-white/40 mt-2">{pct}% selesai</div>
-        </div>
-
-        {/* Target summary */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { icon: Calendar, label: "Target Submit", value: "30 September 2026", color: "#D9A441" },
-            { icon: Target, label: "Jurnal Target", value: "Education & IT", color: "#0B4EA2" },
-            { icon: Clock, label: "Sisa Hari", value: "37 hari", color: "#10B981" },
-          ].map((item) => (
-            <div key={item.label} className="bg-white rounded-2xl shadow-sm p-5 flex items-center gap-4">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: item.color + "15" }}>
-                <item.icon size={20} style={{ color: item.color }} />
-              </div>
-              <div>
-                <div className="text-xs text-gray-400 font-medium">{item.label}</div>
-                <div className="font-bold text-gray-800">{item.value}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Weekly tasks */}
-        <div className="space-y-4">
-          {[1, 2, 3, 4].map((week) => {
-            const weekTasks = tasks.filter(t => t.week === week);
-            const weekDone = weekTasks.filter(t => t.status === "done").length;
-            return (
-              <div key={week} className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between"
-                  style={{ background: weekDone === weekTasks.length ? "rgba(16,185,129,0.04)" : "#FAFAFA" }}>
-                  <div>
-                    <div className="font-bold text-gray-900">{weekLabels[week - 1]}</div>
-                    <div className="text-xs text-gray-400 mt-0.5">{weekThemes[week - 1]}</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-sm font-semibold text-gray-500">{weekDone}/{weekTasks.length} selesai</div>
-                    <div className="w-20">
-                      <div className="progress-bar">
-                        <div className="progress-fill" style={{
-                          width: `${weekTasks.length ? (weekDone / weekTasks.length) * 100 : 0}%`
-                        }} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="divide-y divide-gray-50">
-                  {weekTasks.map((task) => {
-                    const st = statusConfig[task.status];
-                    const Icon = st.icon;
-                    return (
-                      <div
-                        key={task.id}
-                        className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                        onClick={() => cycleStatus(task.id)}
-                      >
-                        <Icon size={20} style={{ color: st.color, flexShrink: 0 }} />
-                        <div className="flex-1">
-                          <div className={`font-medium text-sm ${task.status === "done" ? "line-through text-gray-400" : "text-gray-800"}`}>
-                            {task.task}
-                          </div>
-                          <div className="text-xs text-gray-400 mt-0.5">Deadline: {task.deadline}</div>
-                        </div>
-                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                          style={{ color: st.color, background: st.bg }}>
-                          {st.label}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Add task */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="font-bold text-gray-900 mb-4">Tambah Tugas</h2>
-          <div className="flex gap-3">
-            <input id="new-task-input" className="input-field flex-1" placeholder="Tulis tugas baru..." />
-            <select id="new-task-week" className="input-field w-36">
-              {weekLabels.map(w => <option key={w}>{w}</option>)}
-            </select>
-            <button id="btn-add-task" className="btn-primary whitespace-nowrap">+ Tambah</button>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </AppShell>
   );
