@@ -43,7 +43,7 @@ export default async function TrainerStructuredWorksheetPage({
             <span className="badge bg-blue-50 text-blue-700">Progres {metrics?.progress ?? 0}%</span>
             <span className="badge bg-violet-50 text-violet-700">{answer?.completion_percent ?? 0}% terisi</span>
             {answer?.status === "needs_revision" && <span className="badge bg-amber-50 text-amber-700">Perlu Revisi</span>}
-            {answer?.status === "completed" && <span className="badge bg-emerald-50 text-emerald-700">Selesai · Gate PASS</span>}
+            {answer?.status === "completed" && <span className="badge bg-emerald-50 text-emerald-700">Selesai{moduleCode === "internal_review" ? " · Gate PASS" : ""}</span>}
           </div>
           <Link href={`/trainer/projects/${projectId}/problem`} className="text-xs font-bold text-[#0B4EA2]">Buka Problem Builder</Link>
         </section>
@@ -58,7 +58,7 @@ export default async function TrainerStructuredWorksheetPage({
                 {definition.fields.map((field) => (
                   <div key={field.key}>
                     <div className="text-xs font-bold uppercase tracking-wider text-slate-400">{field.label}</div>
-                    <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{answer.content[field.key] || "—"}</p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{field.kind === "check" ? (answer.content[field.key] === true ? "Dikonfirmasi" : "Belum dikonfirmasi") : answer.content[field.key] || "—"}</p>
                   </div>
                 ))}
               </div>

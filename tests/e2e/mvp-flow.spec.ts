@@ -490,6 +490,96 @@ test("Journal Target progress drives Internal Review and Reviewer Gate", async (
   }
 });
 
+test("participant adapts a journal manuscript and completes the submission checklist", async ({ page }, testInfo) => {
+  const participant = accounts.participant;
+  const trainer = accounts.trainer;
+  const serviceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  test.skip(
+    !participant.email || !participant.password || !trainer.email || !trainer.password || !serviceUrl || !serviceRoleKey,
+    "Set participant, trainer, and local Supabase service credentials first",
+  );
+
+  const service = createClient(serviceUrl!, serviceRoleKey!, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  let createdProjectId: string | undefined;
+  const title = `Sprint 14 E2E ${testInfo.project.name} ${Date.now()}`;
+  const adaptationAnswers = [
+    { label: "Apa ketentuan utama author guidelines jurnal?", value: "Artikel IMRaD maksimal 7.000 kata dan menggunakan blind review." },
+    { label: "Bagaimana judul, abstrak, dan kata kunci harus disesuaikan?", value: "Judul dipadatkan dan kata kunci diselaraskan dengan scope jurnal." },
+    { label: "Bagaimana struktur dan batas kata manuskrip akan disesuaikan?", value: "Pendahuluan dan pembahasan dipadatkan sesuai batas kata." },
+    { label: "Apa penyesuaian sitasi, referensi, tabel, dan gambar?", value: "Referensi, tabel, dan gambar mengikuti gaya jurnal." },
+    { label: "Apa saja paket dokumen yang harus disiapkan?", value: "Manuskrip, title page, cover letter, dan deklarasi." },
+  ];
+  const checklistLabels = [
+    "Berkas manuskrip final sudah siap diunggah",
+    "Format sudah mengikuti author guidelines",
+    "Metadata artikel dan penulis sudah lengkap",
+    "Etik dan seluruh deklarasi sudah lengkap",
+    "Cover letter dan berkas pendukung sudah siap",
+  ];
+  const feedbackComment = `Periksa kembali konsistensi format jurnal ${testInfo.project.name}.`;
+
+  try {
+    await login(page, participant);
+    await page.goto("/projects/new");
+    await page.getByLabel("Judul manuskrip").fill(title);
+    await page.getByLabel("Bidang penelitian").fill("Pendidikan Digital");
+    await page.getByRole("button", { name: /^Buat Proyek$/ }).click();
+    await expect(page).toHaveURL(/\/projects\/[0-9a-f-]{36}$/);
+    createdProjectId = page.url().split("/").at(-1);
+
+    await page.getByRole("link", { name: "Buka Journal Adaptation" }).click();
+    for (const [index, answer] of adaptationAnswers.entries()) {
+      await page.getByLabel(answer.label).fill(answer.value);
+      if (index < adaptationAnswers.length - 1) await page.getByRole("button", { name: "Lanjut" }).click();
+    }
+    await expect(page.getByText("Tersimpan otomatis di database")).toBeVisible();
+
+    await page.goto(`/projects/${createdProjectId}/workbook/submission`);
+    for (const [index, label] of checklistLabels.entries()) {
+      await page.getByLabel(label).check();
+      if (index < checklistLabels.length - 1) await page.getByRole("button", { name: "Lanjut" }).click();
+    }
+    await expect(page.getByText("Tersimpan otomatis di database")).toBeVisible();
+    await page.reload();
+    await expect(page.getByText("Status Submission Checklist: Selesai")).toBeVisible();
+    await page.getByRole("button", { name: "Buka langkah 5" }).click();
+    await expect(page.getByLabel(checklistLabels[4])).toBeChecked();
+
+    await expect.poll(async () => {
+      const { data } = await service
+        .from("worksheet_answers")
+        .select("status,completion_percent,worksheet_modules!inner(code)")
+        .eq("project_id", createdProjectId!)
+        .eq("worksheet_modules.code", "submission")
+        .single();
+      return `${data?.status}:${data?.completion_percent}`;
+    }).toBe("completed:100");
+
+    await page.context().clearCookies();
+    await login(page, trainer);
+    await page.goto(`/trainer/projects/${createdProjectId}/journal_adaptation`);
+    await expect(page.getByText(adaptationAnswers[0].value)).toBeVisible();
+    await page.getByLabel("Komentar").fill(feedbackComment);
+    await page.getByLabel("Prioritas").selectOption("medium");
+    await page.getByRole("button", { name: "Kirim Feedback" }).click();
+    await expect(page.getByText("Feedback berhasil disimpan.")).toBeVisible();
+    await page.goto(`/trainer/projects/${createdProjectId}/submission`);
+    await expect(page.getByText("Dikonfirmasi").first()).toBeVisible();
+    await expect(page.getByText("Selesai", { exact: true })).toBeVisible();
+
+    await page.context().clearCookies();
+    await login(page, participant);
+    await page.goto(`/projects/${createdProjectId}/workbook/journal_adaptation`);
+    await expect(page.getByText("Status Journal Adaptation: Perlu Revisi")).toBeVisible();
+    await expect(page.getByText(feedbackComment)).toBeVisible();
+  } finally {
+    if (createdProjectId) await service.from("projects").delete().eq("id", createdProjectId);
+  }
+});
+
 test("trainer reviews Problem Builder and participant addresses persistent feedback", async ({ page }, testInfo) => {
   const participant = accounts.participant;
   const trainer = accounts.trainer;

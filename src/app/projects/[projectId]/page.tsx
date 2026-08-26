@@ -23,6 +23,8 @@ const activeWorksheets = [
   { code: "scientific_story", title: "Scientific Story", description: "Bangun alur ilmiah dari masalah hingga pesan utama manuskrip." },
   { code: "journal_target", title: "Journal Target", description: "Bandingkan jurnal dan pilih target utama serta jurnal cadangan." },
   { code: "internal_review", title: "Internal Review", description: "Audit manuskrip dan ajukan persetujuan Reviewer Gate kepada trainer." },
+  { code: "journal_adaptation", title: "Journal Adaptation", description: "Sesuaikan struktur dan paket manuskrip dengan author guidelines jurnal utama." },
+  { code: "submission", title: "Submission Checklist", description: "Konfirmasikan seluruh berkas, metadata, etik, dan persyaratan sebelum submit." },
 ];
 
 export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {

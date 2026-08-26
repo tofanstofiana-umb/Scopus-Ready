@@ -4,15 +4,18 @@ import { projectIdSchema } from "@/validation/project.schema";
 
 export function structuredWorksheetContentSchema(code: StructuredWorksheetCode) {
   const shape = Object.fromEntries(
-    structuredWorksheets[code].fields.map((field) => [field.key, z.string().max(field.maxLength)]),
-  ) as Record<string, z.ZodString>;
+    structuredWorksheets[code].fields.map((field) => [
+      field.key,
+      field.kind === "check" ? z.boolean() : z.string().max(field.maxLength),
+    ]),
+  ) as Record<string, z.ZodType>;
   return z.object(shape).strict();
 }
 
 export const saveStructuredWorksheetSchema = z.object({
   projectId: projectIdSchema,
-  moduleCode: z.enum(["literature", "gap", "novelty", "blueprint", "method", "scientific_story", "internal_review"]),
-  content: z.record(z.string(), z.string()),
+  moduleCode: z.enum(["literature", "gap", "novelty", "blueprint", "method", "scientific_story", "internal_review", "journal_adaptation", "submission"]),
+  content: z.record(z.string(), z.union([z.string(), z.boolean()])),
   lastKnownUpdatedAt: z.string().datetime({ offset: true }).nullable().optional(),
 }).superRefine((input, context) => {
   const result = structuredWorksheetContentSchema(input.moduleCode).safeParse(input.content);

@@ -154,4 +154,53 @@ describe("structured worksheet autosave", () => {
     expect(mockedSave).toHaveBeenCalledWith(expect.objectContaining({ moduleCode: "internal_review" }));
     expect(screen.getByText("Tersimpan otomatis di database")).toBeVisible();
   });
+
+  it("saves Journal Adaptation through the shared autosave boundary", async () => {
+    mockedSave.mockResolvedValue({
+      ok: true,
+      data: { updatedAt: "2026-08-26T05:00:00.000Z", completionPercent: 20, status: "in_progress" },
+    });
+    render(
+      <StructuredWorksheetForm
+        projectId={projectId}
+        moduleCode="journal_adaptation"
+        initialContent={createEmptyStructuredContent("journal_adaptation")}
+        initialUpdatedAt={null}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Apa ketentuan utama author guidelines jurnal?"), {
+      target: { value: "Artikel maksimal 7.000 kata dengan struktur IMRaD." },
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(STRUCTURED_AUTOSAVE_DELAY_MS);
+    });
+
+    expect(mockedSave).toHaveBeenCalledWith(expect.objectContaining({ moduleCode: "journal_adaptation" }));
+  });
+
+  it("renders Submission Checklist as confirmations and autosaves boolean values", async () => {
+    mockedSave.mockResolvedValue({
+      ok: true,
+      data: { updatedAt: "2026-08-26T06:00:00.000Z", completionPercent: 20, status: "in_progress" },
+    });
+    render(
+      <StructuredWorksheetForm
+        projectId={projectId}
+        moduleCode="submission"
+        initialContent={createEmptyStructuredContent("submission")}
+        initialUpdatedAt={null}
+      />,
+    );
+
+    fireEvent.click(screen.getByLabelText("Berkas manuskrip final sudah siap diunggah"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(STRUCTURED_AUTOSAVE_DELAY_MS);
+    });
+
+    expect(mockedSave).toHaveBeenCalledWith(expect.objectContaining({
+      moduleCode: "submission",
+      content: expect.objectContaining({ manuscript_file_ready: true }),
+    }));
+  });
 });

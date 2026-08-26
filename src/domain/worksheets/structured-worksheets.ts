@@ -1,12 +1,13 @@
-export type StructuredWorksheetCode = "literature" | "gap" | "novelty" | "blueprint" | "method" | "scientific_story" | "internal_review";
+export type StructuredWorksheetCode = "literature" | "gap" | "novelty" | "blueprint" | "method" | "scientific_story" | "internal_review" | "journal_adaptation" | "submission";
 
-export type StructuredWorksheetContent = Record<string, string>;
+export type StructuredWorksheetContent = Record<string, string | boolean>;
 
 export interface StructuredWorksheetField {
   key: string;
   label: string;
   help: string;
   maxLength: number;
+  kind?: "text" | "check";
 }
 
 export interface StructuredWorksheetDefinition {
@@ -101,6 +102,30 @@ export const structuredWorksheets: Record<StructuredWorksheetCode, StructuredWor
       { key: "submission_readiness", label: "Apa yang masih harus diperbaiki sebelum submit?", help: "Tuliskan temuan audit akhir dan tindakan perbaikan yang masih diperlukan.", maxLength: 1500 },
     ],
   },
+  journal_adaptation: {
+    code: "journal_adaptation",
+    title: "Journal Adaptation",
+    description: "Sesuaikan isi dan paket manuskrip dengan ketentuan jurnal utama tanpa mengubah integritas temuan penelitian.",
+    fields: [
+      { key: "author_guidelines", label: "Apa ketentuan utama author guidelines jurnal?", help: "Ringkas jenis artikel, struktur, panjang naskah, format berkas, dan ketentuan khusus jurnal.", maxLength: 2000 },
+      { key: "title_abstract_keywords", label: "Bagaimana judul, abstrak, dan kata kunci harus disesuaikan?", help: "Catat perubahan yang diperlukan agar fokus, istilah, dan panjangnya sesuai dengan jurnal target.", maxLength: 2000 },
+      { key: "structure_word_limit", label: "Bagaimana struktur dan batas kata manuskrip akan disesuaikan?", help: "Petakan bagian yang perlu dipadatkan, dipindahkan, ditambah, atau dihapus.", maxLength: 2000 },
+      { key: "citations_references", label: "Apa penyesuaian sitasi, referensi, tabel, dan gambar?", help: "Periksa gaya referensi, jumlah sumber, format tabel atau gambar, serta berkas terpisah.", maxLength: 2000 },
+      { key: "submission_package", label: "Apa saja paket dokumen yang harus disiapkan?", help: "Daftar manuskrip, title page, cover letter, pernyataan etik, data, dan lampiran yang diwajibkan.", maxLength: 1500 },
+    ],
+  },
+  submission: {
+    code: "submission",
+    title: "Submission Checklist",
+    description: "Konfirmasikan lima kelompok persyaratan final sebelum manuskrip dikirim ke jurnal.",
+    fields: [
+      { key: "manuscript_file_ready", label: "Berkas manuskrip final sudah siap diunggah", help: "Versi yang benar, bersih, dan anonim bila jurnal menerapkan blind review.", maxLength: 0, kind: "check" },
+      { key: "journal_format_confirmed", label: "Format sudah mengikuti author guidelines", help: "Struktur, batas kata, gaya sitasi, tabel, gambar, dan penamaan berkas sudah diperiksa.", maxLength: 0, kind: "check" },
+      { key: "metadata_complete", label: "Metadata artikel dan penulis sudah lengkap", help: "Judul, abstrak, kata kunci, afiliasi, ORCID, dan data corresponding author sudah benar.", maxLength: 0, kind: "check" },
+      { key: "ethics_and_declarations_complete", label: "Etik dan seluruh deklarasi sudah lengkap", help: "Persetujuan etik, konflik kepentingan, pendanaan, kontribusi penulis, dan data availability tersedia.", maxLength: 0, kind: "check" },
+      { key: "supplementary_files_ready", label: "Cover letter dan berkas pendukung sudah siap", help: "Title page, cover letter, checklist pelaporan, tabel, gambar, serta supplementary files sudah tersedia.", maxLength: 0, kind: "check" },
+    ],
+  },
 };
 
 export function isStructuredWorksheetCode(value: string): value is StructuredWorksheetCode {
@@ -110,9 +135,11 @@ export function isStructuredWorksheetCode(value: string): value is StructuredWor
     || value === "blueprint"
     || value === "method"
     || value === "scientific_story"
-    || value === "internal_review";
+    || value === "internal_review"
+    || value === "journal_adaptation"
+    || value === "submission";
 }
 
 export function createEmptyStructuredContent(code: StructuredWorksheetCode): StructuredWorksheetContent {
-  return Object.fromEntries(structuredWorksheets[code].fields.map((field) => [field.key, ""]));
+  return Object.fromEntries(structuredWorksheets[code].fields.map((field) => [field.key, field.kind === "check" ? false : ""]));
 }

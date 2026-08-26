@@ -36,7 +36,9 @@ export function StructuredWorksheetForm({
   const [lastSavedContent, setLastSavedContent] = useState(initialContent);
 
   const completedFields = useMemo(
-    () => definition.fields.filter((field) => String(content[field.key] ?? "").trim().length > 0).length,
+    () => definition.fields.filter((field) => field.kind === "check"
+      ? content[field.key] === true
+      : String(content[field.key] ?? "").trim().length > 0).length,
     [content, definition.fields],
   );
   const hasUnsavedChanges = useMemo(
@@ -96,7 +98,7 @@ export function StructuredWorksheetForm({
     return () => window.removeEventListener("beforeunload", warnBeforeLeaving);
   }, [hasUnsavedChanges]);
 
-  function updateField(key: string, value: string) {
+  function updateField(key: string, value: string | boolean) {
     setContent((current) => {
       const next = { ...current, [key]: value };
       contentRef.current = next;
@@ -128,7 +130,7 @@ export function StructuredWorksheetForm({
                 key={item.key}
                 type="button"
                 onClick={() => setActiveStep(index)}
-                className={`worksheet-step ${index === activeStep ? "is-active" : ""} ${String(content[item.key] ?? "").trim() ? "is-complete" : ""}`}
+                className={`worksheet-step ${index === activeStep ? "is-active" : ""} ${(item.kind === "check" ? content[item.key] === true : Boolean(String(content[item.key] ?? "").trim())) ? "is-complete" : ""}`}
                 aria-label={`Buka langkah ${index + 1}`}
               >
                 <span>{index + 1}</span>
@@ -141,17 +143,32 @@ export function StructuredWorksheetForm({
             <h2 className="text-base font-extrabold text-[#082B5C]">{field.label}</h2>
             <p className="mt-1 text-xs text-slate-500">{field.help}</p>
           </div>
-          <textarea
-            aria-label={field.label}
-            className="input-field min-h-56"
-            maxLength={field.maxLength}
-            value={content[field.key] ?? ""}
-            onChange={(event) => updateField(field.key, event.target.value)}
-            placeholder="Ketik jawaban Anda di sini..."
-          />
-          <div className="flex justify-end text-[10px] text-slate-400">
-            <span>{(content[field.key] ?? "").length}/{field.maxLength}</span>
-          </div>
+          {field.kind === "check" ? (
+            <label className="flex min-h-36 cursor-pointer items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-6 transition hover:border-blue-300 hover:bg-blue-50/50">
+              <input
+                type="checkbox"
+                aria-label={field.label}
+                className="h-6 w-6 rounded border-slate-300 accent-[#0B4EA2]"
+                checked={content[field.key] === true}
+                onChange={(event) => updateField(field.key, event.target.checked)}
+              />
+              <span className="text-sm font-bold leading-relaxed text-[#082B5C]">Saya sudah memeriksa dan mengonfirmasi persyaratan ini.</span>
+            </label>
+          ) : (
+            <>
+              <textarea
+                aria-label={field.label}
+                className="input-field min-h-56"
+                maxLength={field.maxLength}
+                value={String(content[field.key] ?? "")}
+                onChange={(event) => updateField(field.key, event.target.value)}
+                placeholder="Ketik jawaban Anda di sini..."
+              />
+              <div className="flex justify-end text-[10px] text-slate-400">
+                <span>{String(content[field.key] ?? "").length}/{field.maxLength}</span>
+              </div>
+            </>
+          )}
           <div className="flex flex-wrap justify-between gap-3 border-t border-slate-100 pt-5">
             <button type="button" className="btn-outline" disabled={activeStep === 0} onClick={() => setActiveStep((step) => Math.max(0, step - 1))}>Kembali</button>
             <div className="flex gap-2">

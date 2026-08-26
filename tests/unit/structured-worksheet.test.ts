@@ -10,7 +10,7 @@ const projectId = "2f29b16e-cd44-4a7e-9a84-a358902794e8";
 
 describe("structured worksheet definitions and validation", () => {
   it("provides exactly five empty fields for each active module", () => {
-    for (const code of ["literature", "gap", "novelty", "blueprint", "method", "scientific_story", "internal_review"] as const) {
+    for (const code of ["literature", "gap", "novelty", "blueprint", "method", "scientific_story", "internal_review", "journal_adaptation"] as const) {
       expect(structuredWorksheets[code].fields).toHaveLength(5);
       expect(Object.keys(createEmptyStructuredContent(code))).toHaveLength(5);
       expect(Object.values(createEmptyStructuredContent(code))).toEqual(["", "", "", "", ""]);
@@ -25,6 +25,8 @@ describe("structured worksheet definitions and validation", () => {
     expect(isStructuredWorksheetCode("method")).toBe(true);
     expect(isStructuredWorksheetCode("scientific_story")).toBe(true);
     expect(isStructuredWorksheetCode("internal_review")).toBe(true);
+    expect(isStructuredWorksheetCode("journal_adaptation")).toBe(true);
+    expect(isStructuredWorksheetCode("submission")).toBe(true);
     expect(isStructuredWorksheetCode("problem")).toBe(false);
   });
 
@@ -71,5 +73,18 @@ describe("structured worksheet definitions and validation", () => {
     const review = createEmptyStructuredContent("internal_review");
     review.submission_readiness = "x".repeat(1501);
     expect(saveStructuredWorksheetSchema.safeParse({ projectId, moduleCode: "internal_review", content: review }).success).toBe(false);
+  });
+
+  it("enforces Journal Adaptation limits and creates a boolean Submission Checklist", () => {
+    const adaptation = createEmptyStructuredContent("journal_adaptation");
+    adaptation.submission_package = "x".repeat(1501);
+    expect(saveStructuredWorksheetSchema.safeParse({ projectId, moduleCode: "journal_adaptation", content: adaptation }).success).toBe(false);
+
+    const checklist = createEmptyStructuredContent("submission");
+    expect(Object.keys(checklist)).toHaveLength(5);
+    expect(Object.values(checklist)).toEqual([false, false, false, false, false]);
+    expect(saveStructuredWorksheetSchema.safeParse({ projectId, moduleCode: "submission", content: checklist }).success).toBe(true);
+    checklist.manuscript_file_ready = "yes";
+    expect(saveStructuredWorksheetSchema.safeParse({ projectId, moduleCode: "submission", content: checklist }).success).toBe(false);
   });
 });
