@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { calculateJournalFit, determineJournalFitLabel } from "@/domain/journals/journal-fit";
 import type { ProjectReportData } from "@/types/report";
 
@@ -14,10 +15,13 @@ const dateFormatter = new Intl.DateTimeFormat("id-ID", { dateStyle: "long", time
 export function ProjectReport({ report }: { report: ProjectReportData }) {
   return (
     <article className="section-card overflow-hidden print:border-0 print:shadow-none">
-      <header className="bg-[#082B5C] p-6 text-white sm:p-8 print:bg-white print:px-0 print:text-[#082B5C]">
-        <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#F4BF4F]">SCOPUS READY™ Digital Workbook</p>
-        <h2 className="mt-3 text-2xl font-extrabold">Laporan Proyek Manuskrip</h2>
-        <p className="mt-1 text-sm text-white/70 print:text-slate-600">{report.project.title}</p>
+      <header className="flex items-center gap-4 bg-[#082B5C] p-6 text-white sm:p-8 print:bg-white print:px-0 print:text-[#082B5C]">
+        <Image src="/brand/publish-lab-logo.jpeg" alt="Logo Publish Lab" width={503} height={377} className="h-16 w-auto shrink-0 rounded-lg bg-white object-contain p-1" />
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#F4BF4F] print:text-[#0B4EA2]">SCOPUS READY™ Digital Workbook</p>
+          <h2 className="mt-2 text-2xl font-extrabold">Laporan Proyek Manuskrip</h2>
+          <p className="mt-1 text-sm text-white/70 print:text-slate-600">{report.project.title}</p>
+        </div>
       </header>
       <div className="space-y-8 p-6 sm:p-8 print:px-0">
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

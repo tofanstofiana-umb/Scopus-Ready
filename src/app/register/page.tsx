@@ -1,10 +1,11 @@
 "use client";
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { BookOpen, ArrowRight, User, Mail, Lock, KeyRound } from "lucide-react";
+import { ArrowRight, User, Mail, Lock, KeyRound } from "lucide-react";
 import { registerAction } from "@/app/actions/auth";
 import type { ActionResult } from "@/types/auth";
 import { ProductAttribution } from "@/components/ProductAttribution";
+import { BrandMark } from "@/components/BrandMark";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -19,15 +20,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "linear-gradient(135deg, #082B5C 0%, #0B4EA2 100%)" }}>
       <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl animate-fade-in">
         {/* Brand */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(217,164,65,0.2)" }}>
-            <BookOpen size={20} style={{ color: "#D9A441" }} />
-          </div>
-          <div>
-            <div className="text-xl font-black" style={{ color: "#082B5C" }}>SCOPUS READY™</div>
-            <div className="text-xs text-gray-400 font-semibold">Digital Workbook</div>
-          </div>
-        </div>
+        <div className="mb-6"><BrandMark /></div>
 
         <h2 className="text-2xl font-bold text-gray-900 mb-1">Daftar Akun Baru</h2>
         <p className="text-gray-500 text-sm mb-6">Mulai langkah nyata mempersiapkan manuskrip Anda</p>

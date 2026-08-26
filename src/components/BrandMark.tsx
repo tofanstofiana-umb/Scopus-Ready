@@ -1,4 +1,4 @@
-import { BookOpen, PenLine, Sparkles } from "lucide-react";
+import Image from "next/image";
 
 interface BrandMarkProps {
   compact?: boolean;
@@ -9,9 +9,13 @@ export function BrandMark({ compact = false, inverse = false }: BrandMarkProps) 
   return (
     <div className="brand-lockup" aria-label="SCOPUS READY Digital Workbook oleh Publish-Lab">
       <div className="brand-symbol" aria-hidden="true">
-        <BookOpen className="brand-book" strokeWidth={1.8} />
-        <PenLine className="brand-pen" strokeWidth={2.2} />
-        <Sparkles className="brand-star" strokeWidth={2.4} />
+        <Image
+          src="/brand/publish-lab-logo.jpeg"
+          alt=""
+          width={503}
+          height={377}
+          className="brand-symbol-image"
+        />
       </div>
       {!compact && (
         <div className="min-w-0">
