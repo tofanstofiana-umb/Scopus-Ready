@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   ArrowRight,
   BarChart3,
@@ -16,6 +17,12 @@ import { BrandMark } from "@/components/BrandMark";
 import { ProductAttribution } from "@/components/ProductAttribution";
 import { loginAction } from "@/app/actions/auth";
 import type { ActionResult } from "@/types/auth";
+
+const queryErrorMessages: Record<string, string> = {
+  session_expired: "Sesi Anda telah berakhir. Silakan masuk kembali.",
+  configuration: "Aplikasi belum dikonfigurasi. Hubungi admin.",
+  reset_link_invalid: "Tautan pemulihan password sudah kedaluwarsa atau tidak valid.",
+};
 
 const benefits = [
   {
@@ -45,6 +52,9 @@ export default function LoginPage() {
   } as ActionResult);
   const errorMessage =
     state.message ?? Object.values(state.fieldErrors ?? {}).flat()[0] ?? null;
+  const searchParams = useSearchParams();
+  const queryErrorCode = searchParams.get("error");
+  const queryErrorMessage = queryErrorCode ? queryErrorMessages[queryErrorCode] ?? null : null;
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#F5F7FA] text-[#172033]">
@@ -150,6 +160,21 @@ export default function LoginPage() {
                   Masuk untuk melanjutkan manuskrip Anda.
                 </p>
               </div>
+
+              {queryErrorMessage && (
+                <div role="alert" className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-5 text-amber-800">
+                  {queryErrorMessage}
+                  {queryErrorCode === "reset_link_invalid" && (
+                    <>
+                      {" "}
+                      <Link href="/forgot-password" className="font-extrabold underline">
+                        Minta tautan baru
+                      </Link>
+                      .
+                    </>
+                  )}
+                </div>
+              )}
 
               <form action={formAction} className="space-y-5" noValidate>
                 <div>
