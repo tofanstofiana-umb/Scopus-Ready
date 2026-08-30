@@ -1,9 +1,11 @@
 "use client";
 import { ReactNode } from "react";
 import { Sidebar, BottomNav } from "./Sidebar";
-import { Bell, ChevronDown, Search } from "lucide-react";
 import { BrandMark } from "./BrandMark";
 import { ProductAttribution } from "./ProductAttribution";
+import { ProfileMenu } from "./ProfileMenu";
+import { NotificationBell } from "./NotificationBell";
+import { SearchDialog } from "./SearchDialog";
 
 interface AppShellProps {
   children: ReactNode;
@@ -47,34 +49,9 @@ export function AppShell({ children, role = "peserta", title, subtitle, actions,
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2">
             {actions}
-            <button
-              id="btn-search"
-              className="topbar-icon"
-              aria-label="Cari"
-            >
-              <Search size={17} />
-            </button>
-            <button
-              id="btn-notifications"
-              className="topbar-icon relative"
-              aria-label="Notifikasi"
-            >
-              <Bell size={17} />
-              <span
-                className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full ring-2 ring-white"
-                style={{ background: "#EF4444" }}
-              />
-            </button>
-            <button className="topbar-profile" aria-label="Menu pengguna">
-              <span className="topbar-avatar">{roleInitial}</span>
-              <span className="hidden text-left xl:block">
-                <span className="block text-[11px] font-bold leading-none text-[#082B5C]">
-                  {displayName}
-                </span>
-                <span className="mt-1 block text-[9px] leading-none text-slate-400">{roleLabel}</span>
-              </span>
-              <ChevronDown size={13} className="hidden text-slate-400 xl:block" />
-            </button>
+            <SearchDialog />
+            <NotificationBell />
+            <ProfileMenu displayName={displayName} roleLabel={roleLabel} roleInitial={roleInitial} />
           </div>
         </header>
 
