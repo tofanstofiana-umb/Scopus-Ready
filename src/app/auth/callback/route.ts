@@ -16,6 +16,13 @@ import type { EmailOtpType } from "@supabase/supabase-js";
  * Supabase dashboard, not this file — see README "Pembayaran" section's
  * neighbor, the password-recovery note, for the exact email template to set.
  */
+// GET route handlers are cacheable by default in Next.js. Without this, a
+// hosting platform's CDN can cache this redirect response — including
+// dropping its Set-Cookie header — so the session verifyOtp/
+// exchangeCodeForSession just established never actually reaches the
+// browser, even though the exchange itself succeeded server-side.
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
