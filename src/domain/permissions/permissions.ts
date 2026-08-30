@@ -14,6 +14,8 @@ export const protectedRoutePrefixes = [
   "/action-plan",
   "/library",
   "/onboarding",
+  "/join-class",
+  "/classes",
 ] as const;
 
 export function matchesRoutePrefix(pathname: string, prefix: string): boolean {
@@ -34,7 +36,8 @@ export function canAccessRoleRoute(role: UserRole, pathname: string): boolean {
   if (matchesRoutePrefix(pathname, "/admin")) return role === "admin";
   if (matchesRoutePrefix(pathname, "/trainer")) return role === "trainer" || role === "admin";
   if (matchesRoutePrefix(pathname, "/score") || matchesRoutePrefix(pathname, "/profile")) return true;
-  if (["/dashboard", "/projects", "/workbook", "/review", "/manuscript", "/journals", "/action-plan", "/library", "/onboarding"].some((prefix) => matchesRoutePrefix(pathname, prefix))) {
+  if (matchesRoutePrefix(pathname, "/join-class")) return role === "participant";
+  if (["/dashboard", "/projects", "/workbook", "/review", "/manuscript", "/journals", "/action-plan", "/library", "/onboarding", "/classes"].some((prefix) => matchesRoutePrefix(pathname, prefix))) {
     return role === "participant" || role === "admin";
   }
   return true;

@@ -39,6 +39,13 @@ describe("role permissions", () => {
     expect(canReadProject({ role: "trainer", userId: "trainer-b", ownerId: "p", trainerId: "trainer-a" })).toBe(false);
   });
 
+  it("restricts /join-class to participants", () => {
+    expect(canAccessRoleRoute("participant", "/join-class")).toBe(true);
+    expect(canAccessRoleRoute("trainer", "/join-class")).toBe(false);
+    expect(canAccessRoleRoute("admin", "/join-class")).toBe(false);
+    expect(isProtectedRoute("/join-class")).toBe(true);
+  });
+
   it("matches complete route segments instead of similarly named public paths", () => {
     expect(matchesRoutePrefix("/admin/users", "/admin")).toBe(true);
     expect(matchesRoutePrefix("/administrator", "/admin")).toBe(false);
