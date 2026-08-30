@@ -216,12 +216,6 @@ export default async function AdminPage() {
             ))}
           </div>
         </section>
-
-        <section className="section-card p-6">
-          <h3 className="mb-1 font-extrabold text-[#082B5C]">Paket Layanan & Pembayaran</h3>
-          <p className="text-sm leading-relaxed text-slate-500">Belum ada di skema database. Integrasi payment gateway, model paket, dan pembatasan akses per paket adalah proyek tersendiri yang perlu dirancang terpisah sebelum diimplementasikan.</p>
-          <span className="badge mt-3 bg-amber-50 text-amber-700">Perlu Perencanaan Terpisah</span>
-        </section>
       </div>
     </AppShell>
   );
