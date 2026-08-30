@@ -84,12 +84,17 @@ export default function LoginPage() {
             </div>
 
             <h1 className="max-w-xl text-[32px] font-extrabold leading-[1.14] tracking-[-0.035em] text-white sm:text-[40px] lg:text-[48px]">
-              Dari Ide Penelitian Menjadi Manuskrip{" "}
+              Dari Ide Penelitian Menjadi Manuskrip
+              <br />
               <span className="text-[#F0B94D]">Siap Submit</span>
             </h1>
             <p className="mt-4 max-w-xl text-sm leading-7 text-white/72 sm:text-base lg:mt-5">
               Susun pekerjaan secara bertahap, pantau kesiapan manuskrip, dan
               tindak lanjuti feedback trainer dalam satu ruang kerja yang fokus.
+            </p>
+            <p className="mt-3 max-w-xl text-sm font-bold leading-7 text-[#F0B94D] sm:text-base">
+              Metode/Strategi Pelatihan menggunakan Model T.U.L.I.S Berbasis
+              Metakognitif dengan Peretas Pedagogis AI Adaftif
             </p>
 
             <div className="mt-8 hidden max-w-xl grid-cols-1 gap-3 sm:grid lg:grid-cols-3">
