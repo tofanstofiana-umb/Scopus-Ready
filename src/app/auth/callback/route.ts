@@ -1,28 +1,26 @@
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
+import { getSupabaseConfig } from "@/lib/supabase/config";
 import type { EmailOtpType } from "@supabase/supabase-js";
+
+// GET route handlers are cacheable by default in Next.js — this alone
+// wasn't the fix, but it's still correct to keep.
+export const dynamic = "force-dynamic";
 
 /**
  * Landing point for Supabase auth email links (currently: password
  * recovery), then hands off to `next` — the page that does the actual
  * follow-up (e.g. set new password).
  *
- * Handles two link shapes because Supabase's *default* email templates
- * don't send the PKCE `?code=` this route originally assumed — they send
- * `?token_hash=...&type=...` (verified here via verifyOtp), or in older/
- * hash-based configurations put the token in a URL *fragment*
- * (`#access_token=...`) that never reaches a server route at all. If a
- * reset link keeps landing here with neither param, the fix is in the
- * Supabase dashboard, not this file — see README "Pembayaran" section's
- * neighbor, the password-recovery note, for the exact email template to set.
+ * Cookies are set directly on the `NextResponse` this handler returns,
+ * mirroring src/lib/supabase/proxy.ts's middleware (the one place in this
+ * app already proven to set auth cookies correctly in production) —
+ * instead of relying on next/headers' `cookies().set()` implicitly
+ * attaching to whatever response gets returned, which is the part that
+ * silently failed to deliver the session cookie once deployed on Netlify
+ * even though the token verification itself succeeded server-side.
  */
-// GET route handlers are cacheable by default in Next.js. Without this, a
-// hosting platform's CDN can cache this redirect response — including
-// dropping its Set-Cookie header — so the session verifyOtp/
-// exchangeCodeForSession just established never actually reaches the
-// browser, even though the exchange itself succeeded server-side.
-export const dynamic = "force-dynamic";
-
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
@@ -30,14 +28,29 @@ export async function GET(request: Request) {
   const type = searchParams.get("type") as EmailOtpType | null;
   const next = searchParams.get("next") ?? "/dashboard";
 
+  const { url, anonKey, configured } = getSupabaseConfig();
+  if (!configured || !url || !anonKey) {
+    return NextResponse.redirect(new URL("/login?error=configuration", origin));
+  }
+
+  const response = NextResponse.redirect(`${origin}${next}`);
+  const cookieStore = await cookies();
+  const supabase = createServerClient(url, anonKey, {
+    cookies: {
+      getAll: () => cookieStore.getAll(),
+      setAll: (cookiesToSet) => {
+        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+      },
+    },
+  });
+
   try {
-    const supabase = await createSupabaseServerClient();
     if (tokenHash && type) {
       const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
-      if (!error) return NextResponse.redirect(`${origin}${next}`);
+      if (!error) return response;
     } else if (code) {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
-      if (!error) return NextResponse.redirect(`${origin}${next}`);
+      if (!error) return response;
     }
   } catch (error) {
     console.error("auth callback exchange failure", error instanceof Error ? error.message : "unknown");
