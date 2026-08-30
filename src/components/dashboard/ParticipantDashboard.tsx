@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, BookOpenCheck, FolderPlus, Target, CreditCard, KeyRound } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 import type { Project } from "@/types/project";
 import type { Profile } from "@/types/auth";
 import type { ProjectMetrics } from "@/services/progress.service";
@@ -41,10 +42,13 @@ export function ParticipantDashboard({
               <KeyRound size={20} className="mt-0.5 shrink-0 text-blue-600" aria-hidden="true" />
               <div>
                 <div className="font-extrabold text-blue-900">Anda belum tergabung di kelas manapun</div>
-                <p className="mt-1 text-sm text-blue-800">Hubungi admin untuk verifikasi pembayaran dan dapatkan kode kelas, lalu masukkan di sini.</p>
+                <p className="mt-1 text-sm text-blue-800">Untuk masuk kelas Member, harap hubungi admin untuk verifikasi pembayaran dan dapatkan kode kelas, lalu masukkan di sini.</p>
               </div>
             </div>
-            <Link href="/join-class" className="btn-primary shrink-0 whitespace-nowrap">Masukkan Kode Kelas</Link>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <WhatsAppButton message="Halo Admin, saya sudah mendaftar di SCOPUS READY dan ingin bergabung ke kelas." />
+              <Link href="/join-class" className="btn-primary whitespace-nowrap">Masukkan Kode Kelas</Link>
+            </div>
           </section>
         )}
         {unpaidEnrollments.length > 0 && (
