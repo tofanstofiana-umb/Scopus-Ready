@@ -4,6 +4,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ActionTask, ActionTaskPriority, ActionTaskStatus } from "@/types/action-plan";
 import { projectIdSchema } from "@/validation/project.schema";
 import { requireIdentity } from "./auth.service";
+import { getProject } from "./project.service";
+import { assertClassPaymentClear } from "./payment.service";
 
 export class ActionTaskAccessError extends Error {
   constructor() {
@@ -34,7 +36,9 @@ export async function createActionTask(input: {
   dueDate?: string;
   priority: ActionTaskPriority;
 }): Promise<ActionTask> {
-  await requireIdentity(["participant"]);
+  const { profile } = await requireIdentity(["participant"]);
+  const project = await getProject(input.projectId);
+  await assertClassPaymentClear(project?.class_id ?? null, profile.id);
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("create_action_task", {
     target_project_id: input.projectId,

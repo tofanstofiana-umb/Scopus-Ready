@@ -4,6 +4,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { JournalTarget, JournalTargetInput } from "@/types/journal";
 import { projectIdSchema } from "@/validation/project.schema";
 import { requireIdentity } from "./auth.service";
+import { getProject } from "./project.service";
+import { assertClassPaymentClear } from "./payment.service";
 
 export class JournalTargetAccessError extends Error {
   constructor() {
@@ -33,7 +35,9 @@ export async function getJournalTargets(projectId: string): Promise<JournalTarge
 }
 
 export async function saveJournalTarget(input: JournalTargetInput): Promise<JournalTarget> {
-  await requireIdentity(["participant"]);
+  const { profile } = await requireIdentity(["participant"]);
+  const project = await getProject(input.projectId);
+  await assertClassPaymentClear(project?.class_id ?? null, profile.id);
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("save_journal_target", {
     target_id: input.id ?? null,

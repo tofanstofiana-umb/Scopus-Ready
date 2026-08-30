@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { accessErrorResult } from "@/domain/errors/access-errors";
+import { PaymentRequiredError } from "@/domain/errors/payment-errors";
 import {
   ActionTaskAccessError,
   createActionTask,
@@ -34,6 +35,9 @@ export async function createActionTaskAction(_state: ActionResult, formData: For
   } catch (error) {
     const accessError = accessErrorResult(error);
     if (accessError) return accessError;
+    if (error instanceof PaymentRequiredError) {
+      return { ok: false, code: "PAYMENT_REQUIRED", message: "Kelas ini belum lunas. Selesaikan pembayaran untuk menambah tugas baru." };
+    }
     if (error instanceof ActionTaskAccessError) {
       return { ok: false, code: "FORBIDDEN", message: "Anda tidak dapat mengubah Action Plan proyek ini." };
     }

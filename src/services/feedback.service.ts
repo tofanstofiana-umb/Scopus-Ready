@@ -2,6 +2,9 @@ import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireIdentity } from "./auth.service";
+import { getProject } from "./project.service";
+import { assertClassPaymentClear } from "./payment.service";
+import { createNotification } from "./notification.service";
 import type { FeedbackPriority, TrainerFeedback } from "@/types/feedback";
 import { projectIdSchema } from "@/validation/project.schema";
 
@@ -28,6 +31,8 @@ export async function createFeedback(input: {
   priority: FeedbackPriority;
 }): Promise<TrainerFeedback> {
   await requireIdentity(["trainer"]);
+  const project = await getProject(input.projectId);
+  if (project) await assertClassPaymentClear(project.class_id, project.owner_id);
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("create_trainer_feedback", {
     target_project_id: input.projectId,
@@ -40,6 +45,10 @@ export async function createFeedback(input: {
       throw new FeedbackAccessError();
     }
     throw error;
+  }
+
+  if (project) {
+    await createNotification(project.owner_id, "feedback_received", "Feedback baru dari trainer", input.comment.slice(0, 120), `/projects/${input.projectId}`);
   }
 
   return data as TrainerFeedback;

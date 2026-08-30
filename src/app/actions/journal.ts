@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { accessErrorResult } from "@/domain/errors/access-errors";
+import { PaymentRequiredError } from "@/domain/errors/payment-errors";
 import {
   deleteJournalTarget,
   DuplicateJournalTargetError,
@@ -35,6 +36,9 @@ export async function saveJournalTargetAction(_state: ActionResult, formData: Fo
   } catch (error) {
     const accessError = accessErrorResult(error);
     if (accessError) return accessError;
+    if (error instanceof PaymentRequiredError) {
+      return { ok: false, code: "PAYMENT_REQUIRED", message: "Kelas ini belum lunas. Selesaikan pembayaran untuk menyimpan target jurnal." };
+    }
     if (error instanceof DuplicateJournalTargetError) {
       return { ok: false, code: "VALIDATION", message: "Jurnal tersebut sudah ada pada proyek ini." };
     }

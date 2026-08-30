@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { accessErrorResult } from "@/domain/errors/access-errors";
+import { PaymentRequiredError } from "@/domain/errors/payment-errors";
 import { feedbackSchema, feedbackStatusSchema } from "@/validation/feedback.schema";
 import {
   createFeedback,
@@ -29,6 +30,9 @@ export async function createFeedbackAction(_state: ActionResult, formData: FormD
   } catch (error) {
     const accessError = accessErrorResult(error);
     if (accessError) return accessError;
+    if (error instanceof PaymentRequiredError) {
+      return { ok: false, code: "PAYMENT_REQUIRED", message: "Peserta ini belum melunasi kelasnya, feedback baru belum dapat dikirim." };
+    }
     if (error instanceof FeedbackAccessError) {
       return { ok: false, code: "FORBIDDEN", message: "Proyek atau worksheet tidak berada dalam kelas Anda." };
     }

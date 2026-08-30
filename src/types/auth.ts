@@ -13,6 +13,6 @@ export interface ActionResult<T = undefined> {
   ok: boolean;
   data?: T;
   message?: string;
-  code?: "VALIDATION" | "UNAUTHORIZED" | "FORBIDDEN" | "CONFLICT" | "DATABASE" | "CONFIGURATION";
+  code?: "VALIDATION" | "UNAUTHORIZED" | "FORBIDDEN" | "CONFLICT" | "DATABASE" | "CONFIGURATION" | "PAYMENT_REQUIRED";
   fieldErrors?: Record<string, string[]>;
 }

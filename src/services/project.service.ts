@@ -2,6 +2,7 @@ import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireIdentity } from "./auth.service";
+import { assertClassPaymentClear } from "./payment.service";
 import type { Project, ProjectClassOption } from "@/types/project";
 import type { z } from "zod";
 import { projectIdSchema, type createProjectSchema } from "@/validation/project.schema";
@@ -89,6 +90,8 @@ export async function createProject(input: CreateProjectInput): Promise<Project>
     if (classError) throw classError;
     if (!membership || !activeClass) throw new ProjectClassAccessError();
   }
+
+  await assertClassPaymentClear(input.classId || null, profile.id);
 
   const { data, error } = await supabase
     .from("projects")

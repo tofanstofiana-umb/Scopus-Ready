@@ -2,6 +2,7 @@
 
 import { saveProblemBuilderSchema } from "@/validation/problem-builder.schema";
 import { accessErrorResult } from "@/domain/errors/access-errors";
+import { PaymentRequiredError } from "@/domain/errors/payment-errors";
 import {
   saveProblemWorksheet,
   saveStructuredWorksheet,
@@ -30,6 +31,9 @@ export async function saveProblemBuilderAction(input: {
       status: WorksheetStatus;
     }>(error);
     if (accessError) return accessError;
+    if (error instanceof PaymentRequiredError) {
+      return { ok: false, code: "PAYMENT_REQUIRED", message: "Kelas ini belum lunas. Selesaikan pembayaran untuk menyimpan worksheet." };
+    }
     if (error instanceof WorksheetConflictError) {
       return { ok: false, code: "CONFLICT", message: "Data berubah di perangkat atau sesi lain. Muat ulang sebelum melanjutkan." };
     }
@@ -66,6 +70,9 @@ export async function saveStructuredWorksheetAction(input: {
       status: WorksheetStatus;
     }>(error);
     if (accessError) return accessError;
+    if (error instanceof PaymentRequiredError) {
+      return { ok: false, code: "PAYMENT_REQUIRED", message: "Kelas ini belum lunas. Selesaikan pembayaran untuk menyimpan worksheet." };
+    }
     if (error instanceof WorksheetConflictError) {
       return { ok: false, code: "CONFLICT", message: "Data berubah di perangkat atau sesi lain. Muat ulang sebelum melanjutkan." };
     }

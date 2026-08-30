@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, BookOpenCheck, FolderPlus, Target } from "lucide-react";
+import { ArrowRight, BookOpenCheck, FolderPlus, Target, CreditCard, KeyRound } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import type { Project } from "@/types/project";
 import type { Profile } from "@/types/auth";
 import type { ProjectMetrics } from "@/services/progress.service";
+import type { ClassEnrollmentPayment } from "@/types/payment";
 
 const statusLabels = {
   not_started: "Belum dimulai",
@@ -15,9 +16,13 @@ const statusLabels = {
 export function ParticipantDashboard({
   profile,
   projects,
+  unpaidEnrollments = [],
+  hasNoClass = false,
 }: {
   profile: Profile;
   projects: Array<{ project: Project; metrics: ProjectMetrics }>;
+  unpaidEnrollments?: ClassEnrollmentPayment[];
+  hasNoClass?: boolean;
 }) {
   const active = projects[0];
 
@@ -30,6 +35,32 @@ export function ParticipantDashboard({
       progress={active?.metrics.progress ?? 0}
     >
       <div className="mx-auto max-w-[1200px] space-y-6">
+        {hasNoClass && (
+          <section className="flex flex-col gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <KeyRound size={20} className="mt-0.5 shrink-0 text-blue-600" aria-hidden="true" />
+              <div>
+                <div className="font-extrabold text-blue-900">Anda belum tergabung di kelas manapun</div>
+                <p className="mt-1 text-sm text-blue-800">Hubungi admin untuk verifikasi pembayaran dan dapatkan kode kelas, lalu masukkan di sini.</p>
+              </div>
+            </div>
+            <Link href="/join-class" className="btn-primary shrink-0 whitespace-nowrap">Masukkan Kode Kelas</Link>
+          </section>
+        )}
+        {unpaidEnrollments.length > 0 && (
+          <section className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <CreditCard size={20} className="mt-0.5 shrink-0 text-amber-600" aria-hidden="true" />
+              <div>
+                <div className="font-extrabold text-amber-900">Pembayaran kelas belum selesai</div>
+                <p className="mt-1 text-sm text-amber-800">
+                  {unpaidEnrollments.map((enrollment) => enrollment.className).join(", ")} — Anda bisa melihat progres lama, tapi belum bisa menyimpan worksheet baru sampai lunas.
+                </p>
+              </div>
+            </div>
+            <Link href={`/classes/${unpaidEnrollments[0].classId}/pembayaran`} className="btn-primary shrink-0 whitespace-nowrap">Bayar Sekarang</Link>
+          </section>
+        )}
         {!active ? (
           <section className="section-card p-8 text-center sm:p-12">
             <FolderPlus size={42} className="mx-auto text-[#0B4EA2]" aria-hidden="true" />
