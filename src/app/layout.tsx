@@ -2,6 +2,17 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 
+// Every route here is either auth-gated (reads cookies via
+// createSupabaseServerClient) or reads Supabase config that may not be
+// present at build time (e.g. a hosting provider's build step, before env
+// vars are configured). Without this, Next.js's static-generation pass can
+// throw SupabaseConfigurationError while attempting to prerender a page like
+// /admin and fail the entire production build. Forcing dynamic rendering
+// means every route always executes at request time instead, the same way
+// it already does once deployed — this app has no page that benefits from
+// static generation.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "SCOPUS READY™ Digital Workbook",
   applicationName: "SCOPUS READY™ Digital Workbook by Publish-Lab",
