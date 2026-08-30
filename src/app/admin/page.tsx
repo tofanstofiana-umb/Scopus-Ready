@@ -3,6 +3,7 @@ import { BookOpen, Users, ShieldCheck, BarChart3, Key } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { CreateClassForm } from "@/components/admin/CreateClassForm";
 import { EditClassDialog } from "@/components/admin/EditClassDialog";
+import { ToggleUserActiveButton } from "@/components/admin/ToggleUserActiveButton";
 import { requirePageIdentity } from "@/services/page-auth.service";
 import { getAdminClassSummaries, getAdminUserSummaries, getTrainerOptions } from "@/services/class.service";
 import { getAdminReportSummary } from "@/services/admin-report.service";
@@ -28,7 +29,7 @@ const readinessColor: Record<keyof AdminReadinessBreakdown, string> = {
 const readinessOrder: (keyof AdminReadinessBreakdown)[] = ["ready_to_submit", "minor_revision", "major_revision", "awaiting_assessment"];
 
 export default async function AdminPage() {
-  await requirePageIdentity(["admin"]);
+  const identity = await requirePageIdentity(["admin"]);
   const [classes, trainers, users, report, moduleStatuses] = await Promise.all([
     getAdminClassSummaries(),
     getTrainerOptions(),
@@ -39,13 +40,17 @@ export default async function AdminPage() {
 
   const totalParticipants = users.filter((u) => u.role === "participant").length;
   const activeClasses = classes.filter((c) => c.status === "active").length;
-  const draftClasses = classes.filter((c) => c.status === "draft").length;
+  // Classes are always created "active" (see createClass) — draft is a
+  // schema-level status with no admin workflow to enter it, so counting it
+  // here would always read 0. "Selesai" reflects a real, reachable status
+  // instead (set via Edit Kelas).
+  const completedClasses = classes.filter((c) => c.status === "completed").length;
 
   const stats = [
     { label: "Total Kelas", value: classes.length, icon: BookOpen, color: "#0B4EA2" },
     { label: "Total Peserta", value: totalParticipants, icon: Users, color: "#10B981" },
     { label: "Kelas Aktif", value: activeClasses, icon: ShieldCheck, color: "#D9A441" },
-    { label: "Belum Mulai", value: draftClasses, icon: BarChart3, color: "#EF4444" },
+    { label: "Kelas Selesai", value: completedClasses, icon: BarChart3, color: "#6B7280" },
   ];
 
   return (
@@ -114,7 +119,7 @@ export default async function AdminPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ background: "#F8FAFC" }}>
-                  {["Nama", "Email", "Role", "Institusi"].map((h) => (
+                  {["Nama", "Email", "Role", "Institusi", "Status", ""].map((h) => (
                     <th key={h} className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-500">{h}</th>
                   ))}
                 </tr>
@@ -126,6 +131,14 @@ export default async function AdminPage() {
                     <td className="px-6 py-3 text-slate-500">{u.email}</td>
                     <td className="px-6 py-3"><span className="badge bg-blue-50 text-xs capitalize text-blue-700">{u.role}</span></td>
                     <td className="px-6 py-3 text-slate-500">{u.institution || "—"}</td>
+                    <td className="px-6 py-3">
+                      <span className="badge text-xs" style={{ color: u.is_active ? "#10B981" : "#EF4444", background: u.is_active ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)" }}>
+                        {u.is_active ? "Aktif" : "Nonaktif"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 text-right">
+                      <ToggleUserActiveButton userId={u.id} isActive={u.is_active} isSelf={u.id === identity.profile.id} />
+                    </td>
                   </tr>
                 ))}
               </tbody>

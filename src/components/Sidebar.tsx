@@ -36,7 +36,7 @@ const adminNav = [
   { href: "/admin#classes", icon: BookOpen, label: "Kelas" },
   { href: "/admin#users", icon: Users, label: "Pengguna" },
   { href: "/admin#reports", icon: BarChart3, label: "Laporan" },
-  { href: "/admin#settings", icon: Settings, label: "Pengaturan" },
+  { href: "/admin#settings", icon: Settings, label: "Modul" },
 ];
 
 interface SidebarProps {

@@ -17,10 +17,14 @@ export async function loginAction(_state: ActionResult, formData: FormData): Pro
     const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
     if (error || !data.user) return { ok: false, code: "UNAUTHORIZED", message: "Email atau password tidak sesuai." };
 
-    const { data: profile, error: profileError } = await supabase.from("profiles").select("role").eq("id", data.user.id).single();
+    const { data: profile, error: profileError } = await supabase.from("profiles").select("role,is_active").eq("id", data.user.id).single();
     if (profileError || !profile) {
       await supabase.auth.signOut();
       return { ok: false, code: "DATABASE", message: "Profil pengguna belum tersedia." };
+    }
+    if (!profile.is_active) {
+      await supabase.auth.signOut();
+      return { ok: false, code: "FORBIDDEN", message: "Akun ini telah dinonaktifkan. Hubungi admin jika ini keliru." };
     }
     const role = profile.role as UserRole;
     destination = roleHomeRoute(role);

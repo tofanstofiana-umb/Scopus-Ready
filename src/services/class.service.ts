@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireIdentity } from "./auth.service";
 import { projectIdSchema } from "@/validation/project.schema";
 import type { z } from "zod";
@@ -97,10 +98,29 @@ export async function getAdminUserSummaries(): Promise<AdminUserSummary[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id,full_name,email,role,institution,created_at")
+    .select("id,full_name,email,role,institution,created_at,is_active")
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
+}
+
+export class CannotDeactivateSelfError extends Error {
+  constructor() {
+    super("Anda tidak dapat menonaktifkan akun sendiri.");
+    this.name = "CannotDeactivateSelfError";
+  }
+}
+
+export async function setUserActive(userId: string, isActive: boolean): Promise<void> {
+  const { profile } = await requireIdentity(["admin"]);
+  if (userId === profile.id && !isActive) throw new CannotDeactivateSelfError();
+  // Writes through service-role: the profiles column grant intentionally
+  // only allows authenticated users to touch full_name/institution/
+  // field_of_study on their own row, so this could not go through the
+  // caller's own session even if RLS allowed it.
+  const admin = createSupabaseAdminClient();
+  const { error } = await admin.from("profiles").update({ is_active: isActive }).eq("id", userId);
+  if (error) throw error;
 }
 
 export async function createClass(input: CreateClassInput) {

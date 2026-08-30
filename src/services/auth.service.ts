@@ -15,11 +15,15 @@ export const getCurrentIdentity = cache(async () => {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id,email,full_name,role,institution,field_of_study")
+    .select("id,email,full_name,role,institution,field_of_study,is_active")
     .eq("id", data.user.id)
     .single();
 
   if (profileError || !profile) return null;
+  // A deactivated account is treated as not logged in everywhere — every
+  // protected page/action resolves identity through this one function, so
+  // this is the single place that needs to enforce it.
+  if (!profile.is_active) return null;
   return { user: data.user, profile: profile as Profile };
 });
 

@@ -26,4 +26,5 @@ export interface AdminUserSummary {
   role: "participant" | "trainer" | "admin";
   institution: string | null;
   created_at: string;
+  is_active: boolean;
 }

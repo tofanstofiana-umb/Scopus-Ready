@@ -7,6 +7,7 @@ export interface Profile {
   role: UserRole;
   institution: string | null;
   field_of_study: string | null;
+  is_active: boolean;
 }
 
 export interface ActionResult<T = undefined> {
