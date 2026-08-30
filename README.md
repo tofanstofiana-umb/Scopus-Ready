@@ -175,10 +175,16 @@ Jalankan `npm run test:e2e`. Perintah ini melakukan build produksi, menyalakan s
 - Penulisan feedback hanya melalui RPC tervalidasi yang memeriksa role trainer, kelas, proyek, dan worksheet sebagai satu hubungan.
 - Penulisan assessment hanya melalui batch RPC atomik; RPC menetapkan maksimum rubrik di database dan memastikan trainer memang menangani kelas proyek tersebut.
 - Progres dihitung dari status seluruh modul; score dihitung dari assessment rubrik lengkap dan tidak dapat diedit sebagai angka dashboard.
-- `SUPABASE_SERVICE_ROLE_KEY` tidak digunakan oleh runtime client.
 - Score penuh tidak ditampilkan sampai rubrik lengkap tersedia.
 - Pencocokan proteksi route menggunakan batas segmen URL sehingga nama path yang mirip tidak salah diklasifikasikan.
 - Direct insert/update/delete assessment tetap ditutup; perubahan nilai hanya diizinkan melalui RPC Sprint 9.
+
+## Pembayaran kelas (Midtrans)
+
+- Peserta membayar per kelas/angkatan (`classes.price`, 0 = gratis). Status bayar disimpan di `class_payments`.
+- `SUPABASE_SERVICE_ROLE_KEY` sekarang dipakai runtime — HANYA oleh `src/lib/supabase/admin.ts`, dipanggil dari webhook Midtrans (`src/app/api/payments/midtrans/webhook/route.ts`) dan dari `createPaymentIntent` di `src/services/payment.service.ts`, setelah identity/role divalidasi di kode aplikasi. Tidak pernah dari kode yang reachable dari browser.
+- Status final pembayaran selalu berasal dari notifikasi webhook Midtrans (signature diverifikasi dengan `MIDTRANS_SERVER_KEY`), bukan dari callback `onSuccess` di sisi client — callback client hanya untuk UX.
+- Gate "belum bayar → tidak bisa menyimpan konten baru" ditegakkan di service layer TypeScript (`assertClassPaymentClear`), bukan di RPC/RLS — lihat catatan trade-off pada rencana implementasi. Peserta yang belum bayar tetap bisa login dan melihat data lama.
 
 ## Struktur MVP
 
