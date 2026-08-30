@@ -22,3 +22,18 @@ export const createClassSchema = z
 export const joinClassSchema = z.object({
   code: z.string().trim().min(3, "Kode kelas tidak valid.").max(50),
 });
+
+export const updateClassSchema = z
+  .object({
+    classId: z.string().uuid(),
+    name: z.string().trim().min(3, "Nama kelas minimal 3 karakter.").max(200),
+    trainerId: z.string().uuid().optional().or(z.literal("")),
+    startDate: z.string().optional().or(z.literal("")),
+    endDate: z.string().optional().or(z.literal("")),
+    price: z.coerce.number().int().min(0, "Harga tidak boleh negatif.").optional(),
+    status: z.enum(["active", "completed", "archived"]),
+  })
+  .refine((data) => !data.startDate || !data.endDate || data.startDate <= data.endDate, {
+    message: "Tanggal mulai harus sebelum atau sama dengan tanggal selesai.",
+    path: ["endDate"],
+  });

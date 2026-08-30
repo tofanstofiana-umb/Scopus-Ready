@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BookOpen, Users, ShieldCheck, BarChart3, Key } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { CreateClassForm } from "@/components/admin/CreateClassForm";
+import { EditClassDialog } from "@/components/admin/EditClassDialog";
 import { requirePageIdentity } from "@/services/page-auth.service";
 import { getAdminClassSummaries, getAdminUserSummaries, getTrainerOptions } from "@/services/class.service";
 import { getAdminReportSummary } from "@/services/admin-report.service";
@@ -95,6 +96,7 @@ export default async function AdminPage() {
                     <span className="badge text-xs" style={{ color: statusColor[c.status], background: statusColor[c.status] + "18" }}>
                       {statusLabel[c.status]}
                     </span>
+                    <EditClassDialog classItem={c} trainers={trainers} />
                     <Link href={`/trainer/classes/${c.id}`} className="btn-outline px-3 py-1.5 text-xs">Kelola</Link>
                   </div>
                 </div>

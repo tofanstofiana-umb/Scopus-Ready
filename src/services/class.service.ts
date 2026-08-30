@@ -4,10 +4,11 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireIdentity } from "./auth.service";
 import { projectIdSchema } from "@/validation/project.schema";
 import type { z } from "zod";
-import type { createClassSchema } from "@/validation/class.schema";
+import type { createClassSchema, updateClassSchema } from "@/validation/class.schema";
 import type { AdminClassSummary, AdminUserSummary, TrainerOption } from "@/types/class";
 
 type CreateClassInput = z.infer<typeof createClassSchema>;
+type UpdateClassInput = z.infer<typeof updateClassSchema>;
 
 export async function getTrainerClasses() {
   const { profile } = await requireIdentity(["trainer", "admin"]);
@@ -126,6 +127,26 @@ export async function createClass(input: CreateClassInput) {
     if (error.code === "23505") throw new ClassCodeConflictError();
     throw error;
   }
+  return data;
+}
+
+export async function updateClass(input: UpdateClassInput) {
+  await requireIdentity(["admin"]);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("classes")
+    .update({
+      name: input.name,
+      trainer_id: input.trainerId || null,
+      start_date: input.startDate || null,
+      end_date: input.endDate || null,
+      price: input.price ?? 0,
+      status: input.status,
+    })
+    .eq("id", input.classId)
+    .select("id,name,code,status,start_date,end_date,trainer_id,price")
+    .single();
+  if (error) throw error;
   return data;
 }
 
