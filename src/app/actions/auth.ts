@@ -1,11 +1,19 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { loginSchema, registerSchema } from "@/validation/auth.schema";
+import { headers } from "next/headers";
+import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema } from "@/validation/auth.schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SupabaseConfigurationError } from "@/lib/supabase/config";
 import { roleHomeRoute } from "@/domain/permissions/permissions";
 import type { ActionResult, UserRole } from "@/types/auth";
+
+async function siteOrigin() {
+  const headerList = await headers();
+  const host = headerList.get("host");
+  const protocol = host?.startsWith("localhost") || host?.startsWith("127.0.0.1") ? "http" : "https";
+  return `${protocol}://${host}`;
+}
 
 export async function loginAction(_state: ActionResult, formData: FormData): Promise<ActionResult> {
   const parsed = loginSchema.safeParse({ email: formData.get("email"), password: formData.get("password") });
@@ -64,6 +72,46 @@ export async function registerAction(_state: ActionResult, formData: FormData): 
     return { ok: false, code: "DATABASE", message: "Pendaftaran gagal karena layanan sedang bermasalah." };
   }
   redirect("/dashboard");
+}
+
+export async function requestPasswordResetAction(_state: ActionResult, formData: FormData): Promise<ActionResult> {
+  const parsed = forgotPasswordSchema.safeParse({ email: formData.get("email") });
+  if (!parsed.success) return { ok: false, code: "VALIDATION", fieldErrors: parsed.error.flatten().fieldErrors };
+
+  const genericMessage = "Kalau email tersebut terdaftar, tautan pemulihan password sudah dikirim. Periksa kotak masuk (dan folder spam) Anda.";
+  try {
+    const supabase = await createSupabaseServerClient();
+    const origin = await siteOrigin();
+    // Errors from this call are intentionally not surfaced distinctly —
+    // Supabase itself does not reveal whether an email is registered, and
+    // neither should this UI (avoids account enumeration).
+    await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+      redirectTo: `${origin}/auth/callback?next=/reset-password`,
+    });
+  } catch (error) {
+    if (error instanceof SupabaseConfigurationError) return { ok: false, code: "CONFIGURATION", message: error.message };
+    console.error("password reset request failure", error instanceof Error ? error.message : "unknown");
+  }
+  return { ok: true, message: genericMessage };
+}
+
+export async function updatePasswordAction(_state: ActionResult, formData: FormData): Promise<ActionResult> {
+  const parsed = resetPasswordSchema.safeParse({
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+  if (!parsed.success) return { ok: false, code: "VALIDATION", fieldErrors: parsed.error.flatten().fieldErrors };
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+    if (error) return { ok: false, code: "UNAUTHORIZED", message: "Tautan pemulihan sudah kedaluwarsa atau tidak valid. Minta tautan baru." };
+  } catch (error) {
+    if (error instanceof SupabaseConfigurationError) return { ok: false, code: "CONFIGURATION", message: error.message };
+    console.error("password update failure", error instanceof Error ? error.message : "unknown");
+    return { ok: false, code: "DATABASE", message: "Password belum dapat diperbarui. Silakan coba lagi." };
+  }
+  return { ok: true, message: "Password berhasil diperbarui." };
 }
 
 export async function logoutAction() {
