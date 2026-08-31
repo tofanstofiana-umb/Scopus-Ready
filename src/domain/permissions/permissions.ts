@@ -37,7 +37,8 @@ export function canAccessRoleRoute(role: UserRole, pathname: string): boolean {
   if (matchesRoutePrefix(pathname, "/trainer")) return role === "trainer" || role === "admin";
   if (matchesRoutePrefix(pathname, "/score") || matchesRoutePrefix(pathname, "/profile")) return true;
   if (matchesRoutePrefix(pathname, "/join-class")) return role === "participant";
-  if (["/dashboard", "/projects", "/workbook", "/review", "/manuscript", "/journals", "/action-plan", "/library", "/onboarding", "/classes"].some((prefix) => matchesRoutePrefix(pathname, prefix))) {
+  if (matchesRoutePrefix(pathname, "/library")) return role === "participant" || role === "trainer" || role === "admin";
+  if (["/dashboard", "/projects", "/workbook", "/review", "/manuscript", "/journals", "/action-plan", "/onboarding", "/classes"].some((prefix) => matchesRoutePrefix(pathname, prefix))) {
     return role === "participant" || role === "admin";
   }
   return true;

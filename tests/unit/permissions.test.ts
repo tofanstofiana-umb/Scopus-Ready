@@ -46,6 +46,12 @@ describe("role permissions", () => {
     expect(isProtectedRoute("/join-class")).toBe(true);
   });
 
+  it("allows every role into /library, unlike the participant-only workbook routes", () => {
+    expect(canAccessRoleRoute("participant", "/library")).toBe(true);
+    expect(canAccessRoleRoute("trainer", "/library")).toBe(true);
+    expect(canAccessRoleRoute("admin", "/library")).toBe(true);
+  });
+
   it("matches complete route segments instead of similarly named public paths", () => {
     expect(matchesRoutePrefix("/admin/users", "/admin")).toBe(true);
     expect(matchesRoutePrefix("/administrator", "/admin")).toBe(false);

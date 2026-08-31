@@ -4,12 +4,25 @@ import { AppShell } from "@/components/AppShell";
 import { CreateClassForm } from "@/components/admin/CreateClassForm";
 import { EditClassDialog } from "@/components/admin/EditClassDialog";
 import { ToggleUserActiveButton } from "@/components/admin/ToggleUserActiveButton";
+import { LibraryResourceForm } from "@/components/admin/LibraryResourceForm";
+import { EditLibraryResourceDialog } from "@/components/admin/EditLibraryResourceDialog";
+import { DeleteLibraryResourceButton } from "@/components/admin/DeleteLibraryResourceButton";
 import { requirePageIdentity } from "@/services/page-auth.service";
 import { getAdminClassSummaries, getAdminUserSummaries, getTrainerOptions } from "@/services/class.service";
 import { getAdminReportSummary } from "@/services/admin-report.service";
 import { getWorksheetModuleStatuses } from "@/services/worksheet.service";
+import { getAllLibraryResourcesForAdmin } from "@/services/library.service";
 import type { ClassStatus } from "@/types/class";
 import type { AdminReadinessBreakdown } from "@/types/admin-report";
+import type { LibraryCategory } from "@/types/library";
+
+const libraryCategoryLabel: Record<LibraryCategory, string> = {
+  bacaan: "Bacaan",
+  video: "Video",
+  template: "Template",
+  rubrik: "Rubrik",
+  prompt: "Prompt AI",
+};
 
 const statusLabel: Record<ClassStatus, string> = { draft: "Belum Mulai", active: "Aktif", completed: "Selesai", archived: "Diarsipkan" };
 const statusColor: Record<ClassStatus, string> = { draft: "#9CA3AF", active: "#10B981", completed: "#0B4EA2", archived: "#6B7280" };
@@ -30,12 +43,13 @@ const readinessOrder: (keyof AdminReadinessBreakdown)[] = ["ready_to_submit", "m
 
 export default async function AdminPage() {
   const identity = await requirePageIdentity(["admin"]);
-  const [classes, trainers, users, report, moduleStatuses] = await Promise.all([
+  const [classes, trainers, users, report, moduleStatuses, libraryGroups] = await Promise.all([
     getAdminClassSummaries(),
     getTrainerOptions(),
     getAdminUserSummaries(),
     getAdminReportSummary(),
     getWorksheetModuleStatuses(),
+    getAllLibraryResourcesForAdmin(),
   ]);
 
   const totalParticipants = users.filter((u) => u.role === "participant").length;
@@ -214,6 +228,40 @@ export default async function AdminPage() {
                 </span>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section id="library" className="section-card overflow-hidden">
+          <div className="border-b border-slate-100 px-6 py-4">
+            <h2 className="font-extrabold text-[#082B5C]">Materi Library</h2>
+            <p className="mt-0.5 text-xs text-slate-500">Bacaan, video tutorial, dan materi pendukung. Materi berstatus Draf hanya terlihat di sini — terbitkan untuk menampilkannya di halaman Library peserta.</p>
+          </div>
+          <LibraryResourceForm modules={moduleStatuses} />
+          <div className="divide-y divide-slate-50 border-t border-slate-100">
+            {libraryGroups.length === 0 ? (
+              <div className="p-8 text-center text-sm text-slate-500">Belum ada materi.</div>
+            ) : (
+              libraryGroups.map((group) => (
+                <div key={group.moduleId ?? "pendukung"} className="p-4">
+                  <div className="mb-2 px-2 text-xs font-bold uppercase tracking-wide text-slate-400">{group.moduleName}</div>
+                  <div className="divide-y divide-slate-50">
+                    {group.resources.map((resource) => (
+                      <div key={resource.id} className="flex flex-wrap items-center gap-3 px-2 py-3">
+                        <span className="badge text-[10px] bg-blue-50 text-blue-700">{libraryCategoryLabel[resource.category]}</span>
+                        <span className="min-w-[160px] flex-1 text-sm font-semibold text-slate-800">{resource.title}</span>
+                        <span className="badge text-[10px]" style={{ color: resource.is_published ? "#10B981" : "#9CA3AF", background: resource.is_published ? "rgba(16,185,129,0.1)" : "rgba(156,163,175,0.1)" }}>
+                          {resource.is_published ? "Terbit" : "Draf"}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <EditLibraryResourceDialog resource={resource} modules={moduleStatuses} />
+                          <DeleteLibraryResourceButton id={resource.id} title={resource.title} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </section>
       </div>

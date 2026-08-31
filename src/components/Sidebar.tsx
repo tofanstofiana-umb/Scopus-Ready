@@ -28,6 +28,7 @@ const trainerNav = [
   { href: "/trainer#participants", icon: Users, label: "Peserta" },
   { href: "/review", icon: MessageSquare, label: "Feedback" },
   { href: "/score", icon: BarChart3, label: "Analitik" },
+  { href: "/library", icon: Library, label: "Library" },
   { href: "/profile", icon: User, label: "Profil" },
 ];
 
@@ -36,6 +37,7 @@ const adminNav = [
   { href: "/admin#classes", icon: BookOpen, label: "Kelas" },
   { href: "/admin#users", icon: Users, label: "Pengguna" },
   { href: "/admin#reports", icon: BarChart3, label: "Laporan" },
+  { href: "/admin#library", icon: Library, label: "Library" },
   { href: "/admin#settings", icon: Settings, label: "Modul" },
 ];
 
